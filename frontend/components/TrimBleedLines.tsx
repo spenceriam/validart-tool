@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useValidart } from '../contexts/ValidartContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -7,37 +7,53 @@ import { Label } from '@/components/ui/label';
 export default function TrimBleedLines() {
   const { state, dispatch } = useValidart();
 
-  const handleTrimDistanceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    
-    // Allow empty string, decimal point, or valid numbers
-    if (value === '' || value === '.') {
-      return;
-    }
-    
-    const distance = parseFloat(value);
-    if (!isNaN(distance) && distance >= 0) {
-      dispatch({
-        type: 'SET_TRIM_DISTANCE',
-        payload: distance
-      });
+  const [trimMm, setTrimMm] = useState(state.trimDistance.toString());
+  const [bleedMm, setBleedMm] = useState(state.bleedDistance.toString());
+  const [trimIn, setTrimIn] = useState((state.trimDistance / 25.4).toFixed(3));
+  const [bleedIn, setBleedIn] = useState((state.bleedDistance / 25.4).toFixed(3));
+
+  useEffect(() => {
+    setTrimMm(state.trimDistance.toString());
+    setTrimIn((state.trimDistance / 25.4).toFixed(3));
+  }, [state.trimDistance]);
+
+  useEffect(() => {
+    setBleedMm(state.bleedDistance.toString());
+    setBleedIn((state.bleedDistance / 25.4).toFixed(3));
+  }, [state.bleedDistance]);
+
+  const inchesToMm = (inches: number) => inches * 25.4;
+
+  const handleMmChange = (value: string, type: 'trim' | 'bleed') => {
+    if (type === 'trim') setTrimMm(value);
+    else setBleedMm(value);
+
+    if (value.trim() === '' || value.endsWith('.')) return;
+
+    const parsed = parseFloat(value);
+    if (!isNaN(parsed) && parsed >= 0) {
+      if (type === 'trim') {
+        dispatch({ type: 'SET_TRIM_DISTANCE', payload: parsed });
+      } else {
+        dispatch({ type: 'SET_BLEED_DISTANCE', payload: parsed });
+      }
     }
   };
 
-  const handleBleedDistanceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    
-    // Allow empty string, decimal point, or valid numbers
-    if (value === '' || value === '.') {
-      return;
-    }
-    
-    const distance = parseFloat(value);
-    if (!isNaN(distance) && distance >= 0) {
-      dispatch({
-        type: 'SET_BLEED_DISTANCE',
-        payload: distance
-      });
+  const handleInchesChange = (value: string, type: 'trim' | 'bleed') => {
+    if (type === 'trim') setTrimIn(value);
+    else setBleedIn(value);
+
+    if (value.trim() === '' || value.endsWith('.')) return;
+
+    const parsed = parseFloat(value);
+    if (!isNaN(parsed) && parsed >= 0) {
+      const mm = inchesToMm(parsed);
+      if (type === 'trim') {
+        dispatch({ type: 'SET_TRIM_DISTANCE', payload: mm });
+      } else {
+        dispatch({ type: 'SET_BLEED_DISTANCE', payload: mm });
+      }
     }
   };
 
@@ -48,30 +64,66 @@ export default function TrimBleedLines() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
+          {/* Trim Distance */}
           <div className="space-y-2">
-            <Label htmlFor="trim-distance" className="text-xs">Trim distance from edge (mm)</Label>
-            <Input
-              id="trim-distance"
-              type="text"
-              inputMode="decimal"
-              value={state.trimDistance.toString()}
-              onChange={handleTrimDistanceChange}
-              placeholder="0.5"
-              className="h-8 text-sm"
-            />
+            <Label className="text-xs">Trim distance from edge</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor="trim-mm" className="text-xs font-normal text-muted-foreground">mm</Label>
+                <Input
+                  id="trim-mm"
+                  type="text"
+                  inputMode="decimal"
+                  value={trimMm}
+                  onChange={(e) => handleMmChange(e.target.value, 'trim')}
+                  placeholder="0.5"
+                  className="h-8 text-sm"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="trim-in" className="text-xs font-normal text-muted-foreground">in</Label>
+                <Input
+                  id="trim-in"
+                  type="text"
+                  inputMode="decimal"
+                  value={trimIn}
+                  onChange={(e) => handleInchesChange(e.target.value, 'trim')}
+                  placeholder="0.020"
+                  className="h-8 text-sm"
+                />
+              </div>
+            </div>
           </div>
           
+          {/* Bleed Distance */}
           <div className="space-y-2">
-            <Label htmlFor="bleed-distance" className="text-xs">Bleed distance from edge (mm)</Label>
-            <Input
-              id="bleed-distance"
-              type="text"
-              inputMode="decimal"
-              value={state.bleedDistance.toString()}
-              onChange={handleBleedDistanceChange}
-              placeholder="2.0"
-              className="h-8 text-sm"
-            />
+            <Label className="text-xs">Bleed distance from edge</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor="bleed-mm" className="text-xs font-normal text-muted-foreground">mm</Label>
+                <Input
+                  id="bleed-mm"
+                  type="text"
+                  inputMode="decimal"
+                  value={bleedMm}
+                  onChange={(e) => handleMmChange(e.target.value, 'bleed')}
+                  placeholder="2.0"
+                  className="h-8 text-sm"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="bleed-in" className="text-xs font-normal text-muted-foreground">in</Label>
+                <Input
+                  id="bleed-in"
+                  type="text"
+                  inputMode="decimal"
+                  value={bleedIn}
+                  onChange={(e) => handleInchesChange(e.target.value, 'bleed')}
+                  placeholder="0.079"
+                  className="h-8 text-sm"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Legend */}

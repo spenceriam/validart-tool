@@ -73,7 +73,7 @@ export default function Header() {
                 variant="ghost"
                 size="icon"
                 onClick={openInfoModal}
-                className="text-primary-foreground hover:bg-primary-foreground/10"
+                className="text-primary-foreground hover:bg-primary-foreground/20 dark:hover:text-white"
                 title="Help & Information"
               >
                 <HelpCircle className="h-5 w-5" />
@@ -82,7 +82,7 @@ export default function Header() {
                 variant="ghost"
                 size="sm"
                 onClick={clearArtwork}
-                className="text-primary-foreground hover:bg-primary-foreground/10"
+                className="text-primary-foreground hover:bg-primary-foreground/20 dark:hover:text-white"
               >
                 <RotateCcw className="h-4 w-4 mr-2" />
                 Clear artwork
@@ -91,7 +91,7 @@ export default function Header() {
                 variant="ghost"
                 size="icon"
                 onClick={toggleTheme}
-                className="text-primary-foreground hover:bg-primary-foreground/10"
+                className="text-primary-foreground hover:bg-primary-foreground/20 dark:hover:text-white"
               >
                 {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
               </Button>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useValidart } from '../contexts/ValidartContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -7,64 +7,57 @@ import { Label } from '@/components/ui/label';
 export default function CardDimensions() {
   const { state, dispatch } = useValidart();
 
-  const mmToInches = (mm: number) => mm / 25.4;
+  const [widthMm, setWidthMm] = useState(state.cardWidth.toString());
+  const [heightMm, setHeightMm] = useState(state.cardHeight.toString());
+  const [widthIn, setWidthIn] = useState((state.cardWidth / 25.4).toFixed(3));
+  const [heightIn, setHeightIn] = useState((state.cardHeight / 25.4).toFixed(3));
+
+  useEffect(() => {
+    setWidthMm(state.cardWidth.toString());
+    setWidthIn((state.cardWidth / 25.4).toFixed(3));
+  }, [state.cardWidth]);
+
+  useEffect(() => {
+    setHeightMm(state.cardHeight.toString());
+    setHeightIn((state.cardHeight / 25.4).toFixed(3));
+  }, [state.cardHeight]);
+
   const inchesToMm = (inches: number) => inches * 25.4;
 
-  const handleWidthMmChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    
-    // Allow empty string, decimal point, or valid numbers
-    if (value === '' || value === '.') {
-      return;
-    }
-    
-    const width = parseFloat(value);
-    if (!isNaN(width) && width > 0) {
-      dispatch({ type: 'SET_CARD_DIMENSIONS', payload: { width, height: state.cardHeight } });
+  const handleMmChange = (value: string, dimension: 'width' | 'height') => {
+    if (dimension === 'width') setWidthMm(value);
+    else setHeightMm(value);
+
+    if (value.trim() === '' || value.endsWith('.')) return;
+
+    const parsed = parseFloat(value);
+    if (!isNaN(parsed) && parsed > 0) {
+      dispatch({
+        type: 'SET_CARD_DIMENSIONS',
+        payload: {
+          width: dimension === 'width' ? parsed : state.cardWidth,
+          height: dimension === 'height' ? parsed : state.cardHeight,
+        },
+      });
     }
   };
 
-  const handleHeightMmChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    
-    // Allow empty string, decimal point, or valid numbers
-    if (value === '' || value === '.') {
-      return;
-    }
-    
-    const height = parseFloat(value);
-    if (!isNaN(height) && height > 0) {
-      dispatch({ type: 'SET_CARD_DIMENSIONS', payload: { width: state.cardWidth, height } });
-    }
-  };
+  const handleInchesChange = (value: string, dimension: 'width' | 'height') => {
+    if (dimension === 'width') setWidthIn(value);
+    else setHeightIn(value);
 
-  const handleWidthInchesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    
-    // Allow empty string, decimal point, or valid numbers
-    if (value === '' || value === '.') {
-      return;
-    }
-    
-    const inches = parseFloat(value);
-    if (!isNaN(inches) && inches > 0) {
-      const width = inchesToMm(inches);
-      dispatch({ type: 'SET_CARD_DIMENSIONS', payload: { width, height: state.cardHeight } });
-    }
-  };
+    if (value.trim() === '' || value.endsWith('.')) return;
 
-  const handleHeightInchesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    
-    // Allow empty string, decimal point, or valid numbers
-    if (value === '' || value === '.') {
-      return;
-    }
-    
-    const inches = parseFloat(value);
-    if (!isNaN(inches) && inches > 0) {
-      const height = inchesToMm(inches);
-      dispatch({ type: 'SET_CARD_DIMENSIONS', payload: { width: state.cardWidth, height } });
+    const parsed = parseFloat(value);
+    if (!isNaN(parsed) && parsed > 0) {
+      const mm = inchesToMm(parsed);
+      dispatch({
+        type: 'SET_CARD_DIMENSIONS',
+        payload: {
+          width: dimension === 'width' ? mm : state.cardWidth,
+          height: dimension === 'height' ? mm : state.cardHeight,
+        },
+      });
     }
   };
 
@@ -83,9 +76,9 @@ export default function CardDimensions() {
                 id="width-mm"
                 type="text"
                 inputMode="decimal"
-                value={state.cardWidth.toString()}
-                onChange={handleWidthMmChange}
-                placeholder="85.6"
+                value={widthMm}
+                onChange={(e) => handleMmChange(e.target.value, 'width')}
+                placeholder="101.6"
                 className="h-8 text-sm"
               />
             </div>
@@ -95,9 +88,9 @@ export default function CardDimensions() {
                 id="width-in"
                 type="text"
                 inputMode="decimal"
-                value={mmToInches(state.cardWidth).toFixed(3)}
-                onChange={handleWidthInchesChange}
-                placeholder="3.370"
+                value={widthIn}
+                onChange={(e) => handleInchesChange(e.target.value, 'width')}
+                placeholder="4.000"
                 className="h-8 text-sm"
               />
             </div>
@@ -111,9 +104,9 @@ export default function CardDimensions() {
                 id="height-mm"
                 type="text"
                 inputMode="decimal"
-                value={state.cardHeight.toString()}
-                onChange={handleHeightMmChange}
-                placeholder="53.98"
+                value={heightMm}
+                onChange={(e) => handleMmChange(e.target.value, 'height')}
+                placeholder="139.7"
                 className="h-8 text-sm"
               />
             </div>
@@ -123,9 +116,9 @@ export default function CardDimensions() {
                 id="height-in"
                 type="text"
                 inputMode="decimal"
-                value={mmToInches(state.cardHeight).toFixed(3)}
-                onChange={handleHeightInchesChange}
-                placeholder="2.125"
+                value={heightIn}
+                onChange={(e) => handleInchesChange(e.target.value, 'height')}
+                placeholder="5.500"
                 className="h-8 text-sm"
               />
             </div>

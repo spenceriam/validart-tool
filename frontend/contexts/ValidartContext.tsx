@@ -58,8 +58,8 @@ type ValidartAction =
 const initialState: ValidartState = {
   artwork: null,
   artworkFile: null,
-  cardWidth: 85.6, // Standard credit card width (CR80)
-  cardHeight: 53.98, // Standard credit card height (CR80)
+  cardWidth: 101.6, // 4 inches
+  cardHeight: 139.7, // 5.5 inches
   roundedCorners: true,
   features: [],
   canvasWidth: 400,
