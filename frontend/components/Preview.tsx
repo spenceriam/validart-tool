@@ -1,10 +1,11 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import { useValidart } from '../contexts/ValidartContext';
 
 export default function Preview() {
   const { state, dispatch } = useValidart();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const canvasContainerRef = useRef<HTMLDivElement>(null);
+  const animationFrameRef = useRef<number | null>(null);
 
   const roundRect = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) => {
     ctx.beginPath();
@@ -27,7 +28,7 @@ export default function Preview() {
     ctx.restore();
   };
 
-  const updatePreview = () => {
+  const updatePreview = useCallback(() => {
     const canvas = canvasRef.current;
     const container = canvasContainerRef.current;
     if (!canvas || !container) return;
@@ -208,20 +209,34 @@ export default function Preview() {
       }
     };
     img.src = state.artwork;
-  };
+  }, [state.artwork, state.cardWidth, state.cardHeight, state.roundedCorners, state.features, state.trimDistance, state.bleedDistance, dispatch]);
 
   useEffect(() => {
     const container = canvasContainerRef.current;
     if (!container) return;
 
     const resizeObserver = new ResizeObserver(() => {
-      updatePreview();
+      // Cancel any pending animation frame
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+      
+      // Schedule update on next frame to prevent flashing
+      animationFrameRef.current = requestAnimationFrame(updatePreview);
     });
+    
     resizeObserver.observe(container);
+    
+    // Initial update
     updatePreview();
 
-    return () => resizeObserver.disconnect();
-  }, [state.artwork, state.cardWidth, state.cardHeight, state.roundedCorners, state.features, state.trimDistance, state.bleedDistance]);
+    return () => {
+      resizeObserver.disconnect();
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [updatePreview]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     const canvas = canvasRef.current;
@@ -256,7 +271,7 @@ export default function Preview() {
     }
   };
 
-  const handleMouseMove = (e: MouseEvent) => {
+  const handleMouseMove = useCallback((e: MouseEvent) => {
     if (state.isDragging && state.dragTarget?.type === 'feature') {
       const canvas = canvasRef.current;
       if (!canvas) return;
@@ -269,20 +284,27 @@ export default function Preview() {
 
       const feature = state.features.find(f => f.id === state.dragTarget.id);
       if (feature) {
-        dispatch({
-          type: 'UPDATE_FEATURE',
-          payload: { id: feature.id, updates: { x: feature.x + deltaX, y: feature.y + deltaY } }
+        // Use animation frame to throttle updates and prevent flashing
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
+        }
+        
+        animationFrameRef.current = requestAnimationFrame(() => {
+          dispatch({
+            type: 'UPDATE_FEATURE',
+            payload: { id: feature.id, updates: { x: feature.x + deltaX, y: feature.y + deltaY } }
+          });
+          dispatch({ type: 'SET_LAST_MOUSE_POS', payload: { x, y } });
         });
       }
-      dispatch({ type: 'SET_LAST_MOUSE_POS', payload: { x, y } });
     }
-  };
+  }, [state.isDragging, state.dragTarget, state.lastMousePos, state.canvasScale, state.features, dispatch]);
 
-  const handleMouseUp = () => {
+  const handleMouseUp = useCallback(() => {
     if (state.isDragging) {
       dispatch({ type: 'SET_DRAGGING', payload: { isDragging: false } });
     }
-  };
+  }, [state.isDragging, dispatch]);
 
   useEffect(() => {
     if (state.isDragging) {
@@ -293,7 +315,7 @@ export default function Preview() {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [state.isDragging, state.lastMousePos, state.canvasScale]);
+  }, [state.isDragging, handleMouseMove, handleMouseUp]);
 
   return (
     <div className="w-full h-full flex flex-col p-6">
