@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trash2, Plus } from 'lucide-react';
+import { Trash2, Plus, AlignCenter, LayoutGrid } from 'lucide-react';
 import { useValidart } from '../contexts/ValidartContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -64,6 +64,74 @@ export default function Features() {
     }
   };
 
+  const centerVertically = () => {
+    const centerY = state.cardHeight / 2;
+    state.features.forEach(feature => {
+      dispatch({
+        type: 'UPDATE_FEATURE',
+        payload: { id: feature.id, updates: { y: centerY } }
+      });
+    });
+  };
+
+  const alignHorizontally = () => {
+    if (state.features.length < 2) return;
+    
+    // Sort features by x position
+    const sortedFeatures = [...state.features].sort((a, b) => a.x - b.x);
+    
+    // Use the y position of the first feature as the alignment line
+    const alignY = sortedFeatures[0].y;
+    
+    sortedFeatures.forEach(feature => {
+      dispatch({
+        type: 'UPDATE_FEATURE',
+        payload: { id: feature.id, updates: { y: alignY } }
+      });
+    });
+  };
+
+  const distributeEvenly = () => {
+    if (state.features.length < 2) return;
+    
+    // Sort features by x position
+    const sortedFeatures = [...state.features].sort((a, b) => a.x - b.x);
+    
+    if (sortedFeatures.length === 2) {
+      // For two features, center them with even spacing
+      const spacing = state.cardWidth / 3; // Divide card into thirds
+      const positions = [spacing, spacing * 2];
+      
+      sortedFeatures.forEach((feature, index) => {
+        dispatch({
+          type: 'UPDATE_FEATURE',
+          payload: { id: feature.id, updates: { x: positions[index] } }
+        });
+      });
+    } else {
+      // For more than two features, distribute evenly across the width
+      const leftMargin = state.cardWidth * 0.1; // 10% margin
+      const rightMargin = state.cardWidth * 0.9; // 90% position
+      const availableWidth = rightMargin - leftMargin;
+      const spacing = availableWidth / (sortedFeatures.length - 1);
+      
+      sortedFeatures.forEach((feature, index) => {
+        const newX = leftMargin + (spacing * index);
+        dispatch({
+          type: 'UPDATE_FEATURE',
+          payload: { id: feature.id, updates: { x: newX } }
+        });
+      });
+    }
+  };
+
+  const getFeaturesByType = (type: 'circle' | 'slot') => {
+    return state.features.filter(feature => feature.type === type);
+  };
+
+  const circles = getFeaturesByType('circle');
+  const slots = getFeaturesByType('slot');
+
   return (
     <Card className="bg-card border-border">
       <CardHeader className="pb-3">
@@ -80,6 +148,56 @@ export default function Features() {
             />
             <Label htmlFor="rounded-corners" className="text-xs">Rounded corners</Label>
           </div>
+
+          {/* Alignment Tools */}
+          {state.features.length > 0 && (
+            <div className="pt-2 border-b border-border pb-4">
+              <h3 className="text-xs font-medium mb-2">Alignment Tools</h3>
+              <div className="grid grid-cols-1 gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={centerVertically}
+                  className="h-8 text-xs"
+                >
+                  <AlignCenter className="h-3 w-3 mr-1" />
+                  Center All Vertically
+                </Button>
+                
+                {state.features.length >= 2 && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={alignHorizontally}
+                      className="h-8 text-xs"
+                    >
+                      <AlignCenter className="h-3 w-3 mr-1 rotate-90" />
+                      Align Horizontally
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={distributeEvenly}
+                      className="h-8 text-xs"
+                    >
+                      <LayoutGrid className="h-3 w-3 mr-1" />
+                      Distribute Evenly
+                    </Button>
+                  </>
+                )}
+              </div>
+              
+              {/* Feature type breakdown */}
+              {(circles.length > 0 || slots.length > 0) && (
+                <div className="mt-2 text-xs text-muted-foreground">
+                  {circles.length > 0 && <div>Punch holes: {circles.length}</div>}
+                  {slots.length > 0 && <div>Slots: {slots.length}</div>}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Punch Holes */}
           <div>
