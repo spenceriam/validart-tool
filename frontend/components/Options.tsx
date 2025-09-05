@@ -12,9 +12,9 @@ export default function Options() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>4. Options</CardTitle>
+    <Card className="bg-card border-border">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm font-medium">Options</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex items-center space-x-2">
@@ -23,7 +23,7 @@ export default function Options() {
             checked={state.roundedCorners}
             onCheckedChange={handleRoundedCornersChange}
           />
-          <Label htmlFor="rounded-corners">Rounded corners</Label>
+          <Label htmlFor="rounded-corners" className="text-xs">Rounded corners</Label>
         </div>
       </CardContent>
     </Card>

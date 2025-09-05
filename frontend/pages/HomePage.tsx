@@ -13,17 +13,24 @@ import { ValidartProvider } from '../contexts/ValidartContext';
 export default function HomePage() {
   return (
     <ValidartProvider>
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col bg-background">
         <Header />
-        <main className="flex-1 container mx-auto px-4 py-6 max-w-4xl">
-          <div className="space-y-6">
-            <ArtworkUpload />
-            <CardDimensions />
-            <SafeZone />
-            <Options />
-            <PunchHoles />
+        <main className="flex-1 flex">
+          {/* Main Preview Area */}
+          <div className="flex-1 flex flex-col items-center justify-center p-6">
             <Preview />
-            <Export />
+          </div>
+          
+          {/* Right Sidebar */}
+          <div className="w-80 border-l border-border bg-card p-6 overflow-y-auto">
+            <div className="space-y-6">
+              <ArtworkUpload />
+              <CardDimensions />
+              <SafeZone />
+              <Options />
+              <PunchHoles />
+              <Export />
+            </div>
           </div>
         </main>
         <Footer />

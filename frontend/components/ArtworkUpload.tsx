@@ -65,13 +65,13 @@ export default function ArtworkUpload() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>1. Upload Artwork</CardTitle>
+    <Card className="bg-card border-border">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm font-medium">Upload Artwork</CardTitle>
       </CardHeader>
       <CardContent>
         <div
-          className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center cursor-pointer transition-all hover:border-primary/50 hover:bg-primary/5"
+          className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 text-center cursor-pointer transition-all hover:border-primary/50 hover:bg-primary/5"
           onClick={() => fileInputRef.current?.click()}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
@@ -84,10 +84,10 @@ export default function ArtworkUpload() {
             onChange={handleFileChange}
             className="hidden"
           />
-          <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <div className="space-y-2">
-            <p className="text-lg font-medium">Click to upload or drag artwork here</p>
-            <p className="text-sm text-muted-foreground">JPG, PNG, SVG • Max 10MB</p>
+          <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+          <div className="space-y-1">
+            <p className="text-sm font-medium">Click to upload</p>
+            <p className="text-xs text-muted-foreground">JPG, PNG, SVG • Max 10MB</p>
           </div>
         </div>
       </CardContent>

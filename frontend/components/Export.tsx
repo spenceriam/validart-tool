@@ -110,16 +110,16 @@ export default function Export() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>7. Download Proof</CardTitle>
+    <Card className="bg-card border-border">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm font-medium">Download Proof</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-col sm:flex-row gap-4 items-end">
-          <div className="flex-1 space-y-2">
-            <Label>DPI</Label>
+        <div className="space-y-3">
+          <div className="space-y-1">
+            <Label className="text-xs">DPI</Label>
             <Select value={selectedDpi} onValueChange={setSelectedDpi}>
-              <SelectTrigger>
+              <SelectTrigger className="h-8 text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -132,9 +132,10 @@ export default function Export() {
           <Button 
             onClick={downloadProof} 
             disabled={!state.artwork}
-            className="w-full sm:w-auto"
+            className="w-full h-8 text-xs"
+            size="sm"
           >
-            <Download className="h-4 w-4 mr-2" />
+            <Download className="h-3 w-3 mr-1" />
             Download Proof
           </Button>
         </div>

@@ -1,6 +1,5 @@
 import React, { useRef, useEffect } from 'react';
 import { useValidart } from '../contexts/ValidartContext';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
 
@@ -50,15 +49,15 @@ export default function Preview() {
     }
 
     // Calculate canvas size
-    const maxCanvasSize = Math.min(600, window.innerWidth - 100);
+    const maxCanvasSize = Math.min(800, window.innerWidth - 400);
     const aspectRatio = state.cardWidth / state.cardHeight;
     
     let canvasWidth, canvasHeight;
     if (aspectRatio > 1) {
-      canvasWidth = Math.min(maxCanvasSize, state.cardWidth * 6);
+      canvasWidth = Math.min(maxCanvasSize, state.cardWidth * 8);
       canvasHeight = canvasWidth / aspectRatio;
     } else {
-      canvasHeight = Math.min(maxCanvasSize, state.cardHeight * 6);
+      canvasHeight = Math.min(maxCanvasSize, state.cardHeight * 8);
       canvasWidth = canvasHeight * aspectRatio;
     }
 
@@ -191,19 +190,16 @@ export default function Preview() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>6. Preview</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {state.banner && (
-          <Alert variant={getBannerVariant()} className="mb-4">
-            {getBannerIcon()}
-            <AlertDescription>{state.banner.message}</AlertDescription>
-          </Alert>
-        )}
-        
-        <div ref={containerRef} className="relative inline-block border rounded-lg overflow-hidden bg-muted max-w-full">
+    <div className="w-full max-w-4xl space-y-4">
+      {state.banner && (
+        <Alert variant={getBannerVariant()} className="max-w-md mx-auto">
+          {getBannerIcon()}
+          <AlertDescription>{state.banner.message}</AlertDescription>
+        </Alert>
+      )}
+      
+      <div className="flex justify-center">
+        <div ref={containerRef} className="relative inline-block border rounded-lg overflow-hidden bg-muted shadow-lg">
           <canvas
             ref={canvasRef}
             className="block max-w-full h-auto"
@@ -224,7 +220,7 @@ export default function Preview() {
             />
           )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

@@ -24,14 +24,14 @@ export default function CardDimensions() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>2. Card Dimensions</CardTitle>
+    <Card className="bg-card border-border">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm font-medium">Card Dimensions</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="width">Width (mm)</Label>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <Label htmlFor="width" className="text-xs">Width (mm)</Label>
             <Input
               id="width"
               type="number"
@@ -39,11 +39,11 @@ export default function CardDimensions() {
               onChange={handleWidthChange}
               min="10"
               max="500"
-              className="w-full"
+              className="h-8 text-sm"
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="height">Height (mm)</Label>
+          <div className="space-y-1">
+            <Label htmlFor="height" className="text-xs">Height (mm)</Label>
             <Input
               id="height"
               type="number"
@@ -51,7 +51,7 @@ export default function CardDimensions() {
               onChange={handleHeightChange}
               min="10"
               max="500"
-              className="w-full"
+              className="h-8 text-sm"
             />
           </div>
         </div>

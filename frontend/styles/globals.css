@@ -57,9 +57,7 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
-}
 
-@layer base {
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
@@ -114,5 +112,21 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .flex {
+    flex-direction: column;
+  }
+  
+  .w-80 {
+    width: 100%;
+  }
+  
+  .border-l {
+    border-left: none;
+    border-top: 1px solid hsl(var(--border));
   }
 }

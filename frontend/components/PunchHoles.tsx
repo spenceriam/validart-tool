@@ -22,15 +22,15 @@ export default function PunchHoles() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>5. Punch Holes (Freestyle)</CardTitle>
+    <Card className="bg-card border-border">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm font-medium">Punch Holes</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           <div>
-            <h3 className="text-sm font-medium mb-3">Click to add punch holes:</h3>
-            <div className="flex gap-4 justify-center mb-4">
+            <h3 className="text-xs font-medium mb-2">Click to add punch holes:</h3>
+            <div className="flex gap-2 justify-center mb-3">
               {[3, 5, 7].map(size => (
                 <button
                   key={size}
@@ -38,10 +38,10 @@ export default function PunchHoles() {
                   className="flex flex-col items-center p-2 rounded-lg border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5 transition-all"
                 >
                   <div
-                    className="bg-destructive rounded-full border-2 border-white shadow-md mb-1"
+                    className="bg-destructive rounded-full border-2 border-white shadow-sm mb-1"
                     style={{
-                      width: `${size * 4}px`,
-                      height: `${size * 4}px`,
+                      width: `${size * 3}px`,
+                      height: `${size * 3}px`,
                     }}
                   />
                   <span className="text-xs text-muted-foreground">{size}mm</span>
@@ -51,11 +51,12 @@ export default function PunchHoles() {
           </div>
           <Button
             variant="outline"
+            size="sm"
             onClick={handleClearHoles}
-            className="w-full"
+            className="w-full h-8 text-xs"
             disabled={state.punchHoles.length === 0}
           >
-            <Trash2 className="h-4 w-4 mr-2" />
+            <Trash2 className="h-3 w-3 mr-1" />
             Clear all holes
           </Button>
         </div>

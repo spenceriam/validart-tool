@@ -12,13 +12,13 @@ export default function SafeZone() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>3. Safe Zone</CardTitle>
+    <Card className="bg-card border-border">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm font-medium">Safe Zone</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          <Label>Safe zone size: {state.safeZonePercent}%</Label>
+        <div className="space-y-3">
+          <Label className="text-xs">Safe zone size: {state.safeZonePercent}%</Label>
           <Slider
             value={[state.safeZonePercent]}
             onValueChange={handleSafeZoneChange}
