@@ -23,77 +23,97 @@ export default function Preview() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    if (!state.artwork) {
-      // Show placeholder
-      canvas.width = 400;
-      canvas.height = 250;
-      
-      dispatch({
-        type: 'SET_CANVAS_DIMENSIONS',
-        payload: { width: 400, height: 250, scale: 1 }
-      });
-
-      ctx.fillStyle = '#f8f9fa';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      ctx.strokeStyle = '#e0e0e0';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
-      
-      ctx.fillStyle = '#6c757d';
-      ctx.font = '16px system-ui';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('Upload artwork to preview', canvas.width / 2, canvas.height / 2);
-      return;
-    }
-
-    // Calculate canvas size
-    const maxCanvasSize = Math.min(800, window.innerWidth - 400);
-    const aspectRatio = state.cardWidth / state.cardHeight;
+    // Calculate canvas size based on card dimensions with proper scaling
+    const maxCanvasSize = Math.min(600, window.innerWidth - 450); // Account for sidebar
+    const cardAspectRatio = state.cardWidth / state.cardHeight;
     
     let canvasWidth, canvasHeight;
-    if (aspectRatio > 1) {
-      canvasWidth = Math.min(maxCanvasSize, state.cardWidth * 8);
-      canvasHeight = canvasWidth / aspectRatio;
+    let pixelsPerMM;
+
+    // Calculate scale to fit in available space while maintaining aspect ratio
+    if (cardAspectRatio > 1) {
+      // Landscape card
+      canvasWidth = Math.min(maxCanvasSize, 600);
+      canvasHeight = canvasWidth / cardAspectRatio;
+      pixelsPerMM = canvasWidth / state.cardWidth;
     } else {
-      canvasHeight = Math.min(maxCanvasSize, state.cardHeight * 8);
-      canvasWidth = canvasHeight * aspectRatio;
+      // Portrait card
+      canvasHeight = Math.min(maxCanvasSize, 600);
+      canvasWidth = canvasHeight * cardAspectRatio;
+      pixelsPerMM = canvasHeight / state.cardHeight;
+    }
+
+    // Ensure minimum size for usability
+    if (canvasWidth < 200) {
+      canvasWidth = 200;
+      canvasHeight = canvasWidth / cardAspectRatio;
+      pixelsPerMM = canvasWidth / state.cardWidth;
+    }
+    if (canvasHeight < 200) {
+      canvasHeight = 200;
+      canvasWidth = canvasHeight * cardAspectRatio;
+      pixelsPerMM = canvasHeight / state.cardHeight;
     }
 
     canvas.width = canvasWidth;
     canvas.height = canvasHeight;
-    const canvasScale = canvasWidth / state.cardWidth;
 
     dispatch({
       type: 'SET_CANVAS_DIMENSIONS',
-      payload: { width: canvasWidth, height: canvasHeight, scale: canvasScale }
+      payload: { width: canvasWidth, height: canvasHeight, scale: pixelsPerMM }
     });
 
-    // Clear canvas
+    if (!state.artwork) {
+      // Show placeholder with card proportions
+      ctx.fillStyle = '#f8f9fa';
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      
+      // Draw card border
+      ctx.strokeStyle = '#e0e0e0';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(1, 1, canvasWidth - 2, canvasHeight - 2);
+      
+      // Draw text
+      ctx.fillStyle = '#6c757d';
+      ctx.font = `${Math.min(canvasWidth, canvasHeight) / 20}px system-ui`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('Upload artwork to preview', canvasWidth / 2, canvasHeight / 2);
+      
+      // Show card dimensions
+      ctx.font = `${Math.min(canvasWidth, canvasHeight) / 30}px system-ui`;
+      ctx.fillText(`${state.cardWidth.toFixed(1)}mm × ${state.cardHeight.toFixed(1)}mm`, canvasWidth / 2, canvasHeight / 2 + 30);
+      return;
+    }
+
+    // Clear canvas with white background
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
     // Load and draw artwork
     const img = new Image();
     img.onload = () => {
+      // Calculate how to fit artwork within the card area
       const artworkAspect = img.width / img.height;
-      const cardAspect = state.cardWidth / state.cardHeight;
       
       let drawWidth, drawHeight, drawX, drawY;
       
-      if (artworkAspect > cardAspect) {
+      // Fit artwork to cover entire card area (aspect fill)
+      if (artworkAspect > cardAspectRatio) {
+        // Artwork is wider than card - fit height and crop width
         drawHeight = canvasHeight;
         drawWidth = drawHeight * artworkAspect;
         drawX = (canvasWidth - drawWidth) / 2;
         drawY = 0;
       } else {
+        // Artwork is taller than card - fit width and crop height
         drawWidth = canvasWidth;
         drawHeight = drawWidth / artworkAspect;
         drawX = 0;
         drawY = (canvasHeight - drawHeight) / 2;
       }
 
+      // Draw the artwork
       ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
 
       // Apply rounded corners if enabled
@@ -106,13 +126,18 @@ export default function Preview() {
         ctx.globalCompositeOperation = 'source-over';
       }
 
-      // Draw punch holes
+      // Draw punch holes on top of artwork
       state.punchHoles.forEach(hole => {
         ctx.fillStyle = '#ef4444';
         ctx.beginPath();
         ctx.arc(hole.x, hole.y, hole.r, 0, 2 * Math.PI);
         ctx.fill();
       });
+
+      // Draw card border on top
+      ctx.strokeStyle = '#333333';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(0.5, 0.5, canvasWidth - 1, canvasHeight - 1);
     };
     img.src = state.artwork;
   };
@@ -123,7 +148,9 @@ export default function Preview() {
       return;
     }
 
-    const safeZoneInset = (state.safeZonePercent / 100) * Math.min(state.cardWidth, state.cardHeight) * state.canvasScale;
+    // Calculate safe zone inset in pixels
+    const safeZoneInsetMM = (state.safeZonePercent / 100) * Math.min(state.cardWidth, state.cardHeight);
+    const safeZoneInsetPixels = safeZoneInsetMM * state.canvasScale;
     
     let hasCollision = false;
     
@@ -133,10 +160,11 @@ export default function Preview() {
       const holeTop = hole.y - hole.r;
       const holeBottom = hole.y + hole.r;
       
-      if (holeRight > safeZoneInset && 
-          holeLeft < state.canvasWidth - safeZoneInset &&
-          holeBottom > safeZoneInset && 
-          holeTop < state.canvasHeight - safeZoneInset) {
+      // Check if hole intersects with safe zone (artwork area)
+      if (holeRight > safeZoneInsetPixels && 
+          holeLeft < state.canvasWidth - safeZoneInsetPixels &&
+          holeBottom > safeZoneInsetPixels && 
+          holeTop < state.canvasHeight - safeZoneInsetPixels) {
         hasCollision = true;
         break;
       }
@@ -189,6 +217,9 @@ export default function Preview() {
     return state.banner.type === 'danger' ? 'destructive' : 'default';
   };
 
+  const safeZoneInsetMM = (state.safeZonePercent / 100) * Math.min(state.cardWidth, state.cardHeight);
+  const safeZoneInsetPixels = safeZoneInsetMM * state.canvasScale;
+
   return (
     <div className="w-full max-w-4xl space-y-4">
       {state.banner && (
@@ -210,16 +241,22 @@ export default function Preview() {
             <div
               className="absolute pointer-events-none opacity-40"
               style={{
-                top: `${(state.safeZonePercent / 100) * Math.min(state.cardWidth, state.cardHeight) * state.canvasScale / state.canvasHeight * 100}%`,
-                left: `${(state.safeZonePercent / 100) * Math.min(state.cardWidth, state.cardHeight) * state.canvasScale / state.canvasWidth * 100}%`,
-                right: `${(state.safeZonePercent / 100) * Math.min(state.cardWidth, state.cardHeight) * state.canvasScale / state.canvasWidth * 100}%`,
-                bottom: `${(state.safeZonePercent / 100) * Math.min(state.cardWidth, state.cardHeight) * state.canvasScale / state.canvasHeight * 100}%`,
+                top: `${safeZoneInsetPixels}px`,
+                left: `${safeZoneInsetPixels}px`,
+                right: `${safeZoneInsetPixels}px`,
+                bottom: `${safeZoneInsetPixels}px`,
                 background: 'repeating-linear-gradient(45deg, #ef4444 0px, #ef4444 8px, transparent 8px, transparent 16px)',
                 animation: 'moveStripes 2s linear infinite',
               }}
             />
           )}
         </div>
+      </div>
+      
+      {/* Card info */}
+      <div className="text-center text-sm text-muted-foreground">
+        Card: {state.cardWidth.toFixed(1)}mm × {state.cardHeight.toFixed(1)}mm 
+        ({(state.cardWidth / 25.4).toFixed(3)}" × {(state.cardHeight / 25.4).toFixed(3)}")
       </div>
     </div>
   );
