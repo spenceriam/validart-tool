@@ -34,6 +34,8 @@ export interface ValidartState {
   dragTarget: any;
   lastMousePos: { x: number; y: number };
   banner: { message: string; type: 'success' | 'danger' | 'warning' } | null;
+  trimDistance: number; // distance from edge in mm
+  bleedDistance: number; // distance from edge in mm
 }
 
 type ValidartAction =
@@ -49,13 +51,15 @@ type ValidartAction =
   | { type: 'SET_RESIZING'; payload: boolean }
   | { type: 'SET_LAST_MOUSE_POS'; payload: { x: number; y: number } }
   | { type: 'SET_BANNER'; payload: { message: string; type: 'success' | 'danger' | 'warning' } | null }
+  | { type: 'SET_TRIM_DISTANCE'; payload: number }
+  | { type: 'SET_BLEED_DISTANCE'; payload: number }
   | { type: 'RESET_STATE' };
 
 const initialState: ValidartState = {
   artwork: null,
   artworkFile: null,
-  cardWidth: 101.6,
-  cardHeight: 139.4,
+  cardWidth: 85.6, // Standard credit card width (CR80)
+  cardHeight: 53.98, // Standard credit card height (CR80)
   roundedCorners: true,
   features: [],
   canvasWidth: 400,
@@ -66,6 +70,8 @@ const initialState: ValidartState = {
   dragTarget: null,
   lastMousePos: { x: 0, y: 0 },
   banner: null,
+  trimDistance: 0.5, // Default trim distance for PVC cards
+  bleedDistance: 2.0, // Default bleed distance for PVC cards
 };
 
 function validartReducer(state: ValidartState, action: ValidartAction): ValidartState {
@@ -138,6 +144,16 @@ function validartReducer(state: ValidartState, action: ValidartAction): Validart
       return {
         ...state,
         banner: action.payload,
+      };
+    case 'SET_TRIM_DISTANCE':
+      return {
+        ...state,
+        trimDistance: action.payload,
+      };
+    case 'SET_BLEED_DISTANCE':
+      return {
+        ...state,
+        bleedDistance: action.payload,
       };
     case 'RESET_STATE':
       return initialState;

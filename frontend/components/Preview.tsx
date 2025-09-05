@@ -22,6 +22,13 @@ export default function Preview() {
     ctx.closePath();
   };
 
+  const drawDashedRect = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, dashLength: number = 5) => {
+    ctx.save();
+    ctx.setLineDash([dashLength, dashLength]);
+    ctx.strokeRect(x, y, width, height);
+    ctx.restore();
+  };
+
   const updatePreview = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -79,6 +86,22 @@ export default function Preview() {
         ctx.stroke();
       } else {
         ctx.strokeRect(1, 1, canvasWidth - 2, canvasHeight - 2);
+      }
+      
+      // Draw trim line (blue)
+      if (state.trimDistance > 0) {
+        const trimInset = state.trimDistance * pixelsPerMM;
+        ctx.strokeStyle = '#3b82f6'; // blue-500
+        ctx.lineWidth = 1;
+        drawDashedRect(ctx, trimInset, trimInset, canvasWidth - 2 * trimInset, canvasHeight - 2 * trimInset);
+      }
+
+      // Draw bleed line (red)
+      if (state.bleedDistance > 0) {
+        const bleedInset = state.bleedDistance * pixelsPerMM;
+        ctx.strokeStyle = '#ef4444'; // red-500
+        ctx.lineWidth = 1;
+        drawDashedRect(ctx, bleedInset, bleedInset, canvasWidth - 2 * bleedInset, canvasHeight - 2 * bleedInset);
       }
       
       ctx.fillStyle = 'hsl(var(--muted-foreground))';
@@ -147,9 +170,26 @@ export default function Preview() {
         }
       });
 
+      // Draw trim line (blue) - always on top
+      if (state.trimDistance > 0) {
+        const trimInset = state.trimDistance * pixelsPerMM;
+        ctx.strokeStyle = '#3b82f6'; // blue-500
+        ctx.lineWidth = 1;
+        drawDashedRect(ctx, trimInset, trimInset, canvasWidth - 2 * trimInset, canvasHeight - 2 * trimInset);
+      }
+
+      // Draw bleed line (red) - always on top
+      if (state.bleedDistance > 0) {
+        const bleedInset = state.bleedDistance * pixelsPerMM;
+        ctx.strokeStyle = '#ef4444'; // red-500
+        ctx.lineWidth = 1;
+        drawDashedRect(ctx, bleedInset, bleedInset, canvasWidth - 2 * bleedInset, canvasHeight - 2 * bleedInset);
+      }
+
       // Draw Card Border (always on top)
       ctx.strokeStyle = 'hsl(var(--foreground) / 0.5)';
       ctx.lineWidth = 1;
+      ctx.setLineDash([]); // Reset to solid line
       if (state.roundedCorners) {
         const radius = Math.min(canvasWidth, canvasHeight) * 0.05;
         roundRect(ctx, 0.5, 0.5, canvasWidth - 1, canvasHeight - 1, radius);
@@ -163,7 +203,7 @@ export default function Preview() {
 
   useEffect(() => {
     updatePreview();
-  }, [state.artwork, state.cardWidth, state.cardHeight, state.roundedCorners, state.features]);
+  }, [state.artwork, state.cardWidth, state.cardHeight, state.roundedCorners, state.features, state.trimDistance, state.bleedDistance]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     const canvas = canvasRef.current;

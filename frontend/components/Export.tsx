@@ -26,6 +26,13 @@ export default function Export() {
     ctx.closePath();
   };
 
+  const drawDashedRect = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, dashLength: number = 5) => {
+    ctx.save();
+    ctx.setLineDash([dashLength, dashLength]);
+    ctx.strokeRect(x, y, width, height);
+    ctx.restore();
+  };
+
   const downloadProof = () => {
     if (!state.artwork) {
       toast({
@@ -104,6 +111,22 @@ export default function Export() {
           exportCtx.fill();
         }
       });
+
+      // Draw trim line (blue)
+      if (state.trimDistance > 0) {
+        const trimInset = state.trimDistance * mmToPx;
+        exportCtx.strokeStyle = '#3b82f6';
+        exportCtx.lineWidth = 1;
+        drawDashedRect(exportCtx, trimInset, trimInset, exportWidth - 2 * trimInset, exportHeight - 2 * trimInset);
+      }
+
+      // Draw bleed line (red)
+      if (state.bleedDistance > 0) {
+        const bleedInset = state.bleedDistance * mmToPx;
+        exportCtx.strokeStyle = '#ef4444';
+        exportCtx.lineWidth = 1;
+        drawDashedRect(exportCtx, bleedInset, bleedInset, exportWidth - 2 * bleedInset, exportHeight - 2 * bleedInset);
+      }
       
       // Add PROOF watermark
       exportCtx.save();
