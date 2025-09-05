@@ -52,6 +52,10 @@ class Validart {
 
   setupElements() {
     this.canvas = document.getElementById('preview-canvas');
+    if (!this.canvas) {
+      console.error('Canvas element not found');
+      return;
+    }
     this.ctx = this.canvas.getContext('2d');
     this.banner = document.getElementById('banner');
     this.safeZoneOverlay = document.getElementById('safe-zone-overlay');
@@ -60,28 +64,42 @@ class Validart {
 
   setupEventListeners() {
     // Theme toggle
-    document.getElementById('theme-toggle').addEventListener('click', this.toggleTheme.bind(this));
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+      themeToggle.addEventListener('click', this.toggleTheme.bind(this));
+    }
 
     // File upload
     const fileInput = document.getElementById('file-input');
     const uploadArea = document.getElementById('upload-area');
     
-    fileInput.addEventListener('change', this.handleFileUpload.bind(this));
-    uploadArea.addEventListener('click', () => fileInput.click());
-    uploadArea.addEventListener('dragover', this.handleDragOver.bind(this));
-    uploadArea.addEventListener('dragleave', this.handleDragLeave.bind(this));
-    uploadArea.addEventListener('drop', this.handleFileDrop.bind(this));
+    if (fileInput) {
+      fileInput.addEventListener('change', this.handleFileUpload.bind(this));
+    }
+    if (uploadArea) {
+      uploadArea.addEventListener('click', () => fileInput && fileInput.click());
+      uploadArea.addEventListener('dragover', this.handleDragOver.bind(this));
+      uploadArea.addEventListener('dragleave', this.handleDragLeave.bind(this));
+      uploadArea.addEventListener('drop', this.handleFileDrop.bind(this));
+    }
 
     // Card dimensions
-    document.getElementById('width-input').addEventListener('input', this.handleDimensionChange.bind(this));
-    document.getElementById('height-input').addEventListener('input', this.handleDimensionChange.bind(this));
+    const widthInput = document.getElementById('width-input');
+    const heightInput = document.getElementById('height-input');
+    if (widthInput) widthInput.addEventListener('input', this.handleDimensionChange.bind(this));
+    if (heightInput) heightInput.addEventListener('input', this.handleDimensionChange.bind(this));
 
     // Safe zone
     const safeZoneSlider = document.getElementById('safe-zone-slider');
-    safeZoneSlider.addEventListener('input', this.handleSafeZoneChange.bind(this));
+    if (safeZoneSlider) {
+      safeZoneSlider.addEventListener('input', this.handleSafeZoneChange.bind(this));
+    }
 
     // Options
-    document.getElementById('rounded-corners').addEventListener('change', this.handleOptionsChange.bind(this));
+    const roundedCorners = document.getElementById('rounded-corners');
+    if (roundedCorners) {
+      roundedCorners.addEventListener('change', this.handleOptionsChange.bind(this));
+    }
 
     // Punch hole templates
     document.querySelectorAll('.punch-hole-template').forEach(template => {
@@ -90,11 +108,16 @@ class Validart {
     });
 
     // Clear punch holes
-    document.getElementById('clear-holes').addEventListener('click', this.clearPunchHoles.bind(this));
+    const clearHoles = document.getElementById('clear-holes');
+    if (clearHoles) {
+      clearHoles.addEventListener('click', this.clearPunchHoles.bind(this));
+    }
 
     // Canvas interactions
-    this.canvas.addEventListener('mousedown', this.handleCanvasMouseDown.bind(this));
-    this.canvas.addEventListener('touchstart', this.handleCanvasTouchStart.bind(this), { passive: false });
+    if (this.canvas) {
+      this.canvas.addEventListener('mousedown', this.handleCanvasMouseDown.bind(this));
+      this.canvas.addEventListener('touchstart', this.handleCanvasTouchStart.bind(this), { passive: false });
+    }
     
     document.addEventListener('mousemove', this.handleMouseMove.bind(this));
     document.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
@@ -103,10 +126,16 @@ class Validart {
     document.addEventListener('touchend', this.handleTouchEnd.bind(this));
 
     // Download proof
-    document.getElementById('download-proof').addEventListener('click', this.downloadProof.bind(this));
+    const downloadProof = document.getElementById('download-proof');
+    if (downloadProof) {
+      downloadProof.addEventListener('click', this.downloadProof.bind(this));
+    }
 
     // Clear storage
-    document.getElementById('clear-storage').addEventListener('click', this.clearStorage.bind(this));
+    const clearStorage = document.getElementById('clear-storage');
+    if (clearStorage) {
+      clearStorage.addEventListener('click', this.clearStorage.bind(this));
+    }
   }
 
   toggleTheme() {
@@ -115,7 +144,9 @@ class Validart {
     document.documentElement.setAttribute('data-theme', newTheme);
     
     const themeToggle = document.getElementById('theme-toggle');
-    themeToggle.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+    if (themeToggle) {
+      themeToggle.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+    }
   }
 
   handleFileUpload(event) {
@@ -167,26 +198,42 @@ class Validart {
       this.updatePreview();
       this.checkCollisions();
     };
+    this.artworkImg.onerror = () => {
+      this.showBanner('Failed to load artwork. Please try another file.', 'danger');
+    };
     this.artworkImg.src = this.artwork;
   }
 
   handleDimensionChange() {
-    this.cardWidth = parseFloat(document.getElementById('width-input').value) || 85;
-    this.cardHeight = parseFloat(document.getElementById('height-input').value) || 55;
+    const widthInput = document.getElementById('width-input');
+    const heightInput = document.getElementById('height-input');
+    
+    this.cardWidth = parseFloat(widthInput ? widthInput.value : 85) || 85;
+    this.cardHeight = parseFloat(heightInput ? heightInput.value : 55) || 55;
     this.updatePreview();
     this.checkCollisions();
   }
 
   handleSafeZoneChange() {
-    this.safeZonePercent = parseInt(document.getElementById('safe-zone-slider').value);
-    document.getElementById('safe-zone-value').textContent = this.safeZonePercent;
-    this.updateSafeZoneOverlay();
-    this.checkCollisions();
+    const safeZoneSlider = document.getElementById('safe-zone-slider');
+    const safeZoneValue = document.getElementById('safe-zone-value');
+    
+    if (safeZoneSlider) {
+      this.safeZonePercent = parseInt(safeZoneSlider.value);
+      if (safeZoneValue) {
+        safeZoneValue.textContent = this.safeZonePercent;
+      }
+      this.updateSafeZoneOverlay();
+      this.checkCollisions();
+    }
   }
 
   handleOptionsChange() {
-    this.roundedCorners = document.getElementById('rounded-corners').checked;
-    this.updatePreview();
+    const roundedCorners = document.getElementById('rounded-corners');
+    if (roundedCorners) {
+      this.roundedCorners = roundedCorners.checked;
+      this.updatePreview();
+    }
   }
 
   handleTemplateMouseDown(event) {
@@ -218,8 +265,9 @@ class Validart {
   handleCanvasMouseDown(event) {
     event.preventDefault();
     const rect = this.canvas.getBoundingClientRect();
-    const x = (event.clientX - rect.left) / this.canvasScale;
-    const y = (event.clientY - rect.top) / this.canvasScale;
+    const scale = this.canvas.offsetWidth / this.canvas.width;
+    const x = (event.clientX - rect.left) / scale;
+    const y = (event.clientY - rect.top) / scale;
     this.handleCanvasInteraction(x, y);
   }
 
@@ -227,8 +275,9 @@ class Validart {
     event.preventDefault();
     const touch = event.touches[0];
     const rect = this.canvas.getBoundingClientRect();
-    const x = (touch.clientX - rect.left) / this.canvasScale;
-    const y = (touch.clientY - rect.top) / this.canvasScale;
+    const scale = this.canvas.offsetWidth / this.canvas.width;
+    const x = (touch.clientX - rect.left) / scale;
+    const y = (touch.clientY - rect.top) / scale;
     this.touchStartPos = { x: touch.clientX, y: touch.clientY };
     this.handleCanvasInteraction(x, y);
   }
@@ -283,8 +332,9 @@ class Validart {
         if (canvasX >= 0 && canvasX <= canvasRect.width && 
             canvasY >= 0 && canvasY <= canvasRect.height) {
           
-          const x = (canvasX + this.dragTarget.offsetX) / this.canvasScale;
-          const y = (canvasY + this.dragTarget.offsetY) / this.canvasScale;
+          const scale = this.canvas.offsetWidth / this.canvas.width;
+          const x = (canvasX + this.dragTarget.offsetX) / scale;
+          const y = (canvasY + this.dragTarget.offsetY) / scale;
           
           // Create new punch hole
           const newHole = {
@@ -303,8 +353,9 @@ class Validart {
       } else if (this.dragTarget.type === 'hole') {
         // Handle hole dragging
         const rect = this.canvas.getBoundingClientRect();
-        const x = (clientX - rect.left) / this.canvasScale;
-        const y = (clientY - rect.top) / this.canvasScale;
+        const scale = this.canvas.offsetWidth / this.canvas.width;
+        const x = (clientX - rect.left) / scale;
+        const y = (clientY - rect.top) / scale;
         
         const hole = this.punchHoles[this.dragTarget.index];
         const deltaX = x - this.lastMousePos.x;
@@ -320,8 +371,9 @@ class Validart {
     } else if (this.isResizing && this.dragTarget) {
       // Handle hole resizing
       const rect = this.canvas.getBoundingClientRect();
-      const x = (clientX - rect.left) / this.canvasScale;
-      const y = (clientY - rect.top) / this.canvasScale;
+      const scale = this.canvas.offsetWidth / this.canvas.width;
+      const x = (clientX - rect.left) / scale;
+      const y = (clientY - rect.top) / scale;
       
       const hole = this.punchHoles[this.dragTarget.index];
       const distance = Math.sqrt((x - hole.x) ** 2 + (y - hole.y) ** 2);
@@ -354,22 +406,39 @@ class Validart {
   }
 
   updatePreview() {
+    if (!this.canvas || !this.ctx) {
+      console.error('Canvas or context not available');
+      return;
+    }
+
     if (!this.artworkImg) {
+      // Show placeholder when no artwork is loaded
       this.canvas.width = 400;
       this.canvas.height = 250;
       this.canvasScale = 1;
-      this.ctx.fillStyle = '#f0f0f0';
+      
+      // Clear and draw placeholder
+      this.ctx.fillStyle = '#f8f9fa';
       this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-      this.ctx.fillStyle = '#999';
-      this.ctx.font = '16px Arial';
+      
+      // Draw border
+      this.ctx.strokeStyle = '#e0e0e0';
+      this.ctx.lineWidth = 2;
+      this.ctx.strokeRect(1, 1, this.canvas.width - 2, this.canvas.height - 2);
+      
+      // Draw text
+      this.ctx.fillStyle = '#6c757d';
+      this.ctx.font = '16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
       this.ctx.textAlign = 'center';
+      this.ctx.textBaseline = 'middle';
       this.ctx.fillText('Upload artwork to preview', this.canvas.width / 2, this.canvas.height / 2);
+      
       this.updateSafeZoneOverlay();
       return;
     }
 
     // Calculate canvas size based on card dimensions
-    const maxCanvasSize = 600;
+    const maxCanvasSize = Math.min(600, window.innerWidth - 100);
     const aspectRatio = this.cardWidth / this.cardHeight;
     
     let canvasWidth, canvasHeight;
@@ -437,6 +506,8 @@ class Validart {
   }
 
   updateSafeZoneOverlay() {
+    if (!this.safeZoneOverlay) return;
+    
     const safeZoneInset = (this.safeZonePercent / 100) * Math.min(this.cardWidth, this.cardHeight) * this.canvasScale;
     
     this.safeZoneOverlay.style.top = safeZoneInset + 'px';
@@ -446,16 +517,20 @@ class Validart {
   }
 
   updatePunchHoles() {
+    if (!this.punchHolesContainer) return;
+    
     // Clear existing punch hole elements
     this.punchHolesContainer.innerHTML = '';
+    
+    const scale = this.canvas.offsetWidth / this.canvas.width;
     
     this.punchHoles.forEach((hole, index) => {
       const holeElement = document.createElement('div');
       holeElement.className = 'punch-hole';
-      holeElement.style.left = (hole.x - hole.r) * this.canvasScale + 'px';
-      holeElement.style.top = (hole.y - hole.r) * this.canvasScale + 'px';
-      holeElement.style.width = hole.r * 2 * this.canvasScale + 'px';
-      holeElement.style.height = hole.r * 2 * this.canvasScale + 'px';
+      holeElement.style.left = (hole.x - hole.r) * scale + 'px';
+      holeElement.style.top = (hole.y - hole.r) * scale + 'px';
+      holeElement.style.width = hole.r * 2 * scale + 'px';
+      holeElement.style.height = hole.r * 2 * scale + 'px';
       
       // Add resize handle
       const resizeHandle = document.createElement('div');
@@ -511,12 +586,15 @@ class Validart {
   }
 
   showBanner(message, type) {
+    if (!this.banner) return;
+    
     this.banner.textContent = message;
     this.banner.className = 'banner ' + type;
     this.banner.style.display = 'block';
   }
 
   hideBanner() {
+    if (!this.banner) return;
     this.banner.style.display = 'none';
   }
 
@@ -526,7 +604,8 @@ class Validart {
       return;
     }
 
-    const dpi = parseInt(document.getElementById('dpi-select').value);
+    const dpiSelect = document.getElementById('dpi-select');
+    const dpi = parseInt(dpiSelect ? dpiSelect.value : 300);
     const scaleFactor = dpi / 150; // Base scale factor for 150 DPI
     
     // Create export canvas
@@ -549,7 +628,7 @@ class Validart {
     exportCtx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--punch-hole-color');
     this.punchHoles.forEach(hole => {
       exportCtx.beginPath();
-      exportCtx.arc(hole.x * this.canvasScale, hole.y * this.canvasScale, hole.r * this.canvasScale, 0, 2 * Math.PI);
+      exportCtx.arc(hole.x, hole.y, hole.r, 0, 2 * Math.PI);
       exportCtx.fill();
     });
     
@@ -572,7 +651,9 @@ class Validart {
       const a = document.createElement('a');
       a.href = url;
       a.download = filename;
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
       URL.revokeObjectURL(url);
     }, 'image/png');
   }
@@ -603,12 +684,21 @@ class Validart {
     this.artwork = null;
     this.artworkImg = null;
     this.punchHoles = [];
-    document.getElementById('file-input').value = '';
-    document.getElementById('width-input').value = '85';
-    document.getElementById('height-input').value = '55';
-    document.getElementById('safe-zone-slider').value = '12';
-    document.getElementById('safe-zone-value').textContent = '12';
-    document.getElementById('rounded-corners').checked = false;
+    
+    const fileInput = document.getElementById('file-input');
+    const widthInput = document.getElementById('width-input');
+    const heightInput = document.getElementById('height-input');
+    const safeZoneSlider = document.getElementById('safe-zone-slider');
+    const safeZoneValue = document.getElementById('safe-zone-value');
+    const roundedCorners = document.getElementById('rounded-corners');
+    
+    if (fileInput) fileInput.value = '';
+    if (widthInput) widthInput.value = '85';
+    if (heightInput) heightInput.value = '55';
+    if (safeZoneSlider) safeZoneSlider.value = '12';
+    if (safeZoneValue) safeZoneValue.textContent = '12';
+    if (roundedCorners) roundedCorners.checked = false;
+    
     this.cardWidth = 85;
     this.cardHeight = 55;
     this.safeZonePercent = 12;
@@ -624,6 +714,20 @@ class Validart {
 // Initialize the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
   new Validart();
+});
+
+// Handle window resize
+window.addEventListener('resize', () => {
+  const validart = window.validartInstance;
+  if (validart) {
+    validart.updatePreview();
+    validart.updatePunchHoles();
+  }
+});
+
+// Store instance globally for resize handler
+document.addEventListener('DOMContentLoaded', () => {
+  window.validartInstance = new Validart();
 });
 
 // Add support for roundRect if not available (for older browsers)
