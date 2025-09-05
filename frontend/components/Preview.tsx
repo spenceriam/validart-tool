@@ -98,10 +98,9 @@ export default function Preview() {
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-      ctx.save();
-      
-      // Apply clipping only if rounded corners are enabled
+      // Only apply clipping if rounded corners are enabled
       if (state.roundedCorners) {
+        ctx.save();
         const radius = Math.min(canvasWidth, canvasHeight) * 0.05;
         roundRect(ctx, 0, 0, canvasWidth, canvasHeight, radius);
         ctx.clip();
@@ -124,9 +123,12 @@ export default function Preview() {
       }
       ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
       
-      ctx.restore(); // Restore from clipping
+      // Restore from clipping if it was applied
+      if (state.roundedCorners) {
+        ctx.restore();
+      }
 
-      // Draw features on top of artwork (outside clipping)
+      // Draw features on top of artwork (always outside clipping)
       state.features.forEach(feature => {
         ctx.fillStyle = '#ef4444';
         if (feature.type === 'circle') {
@@ -145,7 +147,7 @@ export default function Preview() {
         }
       });
 
-      // Draw Danger Zone overlay - outside of clipping
+      // Draw Danger Zone overlay - always outside of clipping
       const dangerZoneInsetPixels = (state.safeZonePercent / 100) * Math.min(canvasWidth, canvasHeight);
       
       // Create a striped pattern for the danger zone

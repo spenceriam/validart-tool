@@ -54,10 +54,9 @@ export default function Export() {
       exportCtx.fillStyle = '#ffffff';
       exportCtx.fillRect(0, 0, exportWidth, exportHeight);
 
-      exportCtx.save();
-
-      // Apply clipping only if rounded corners are enabled
+      // Only apply clipping if rounded corners are enabled
       if (state.roundedCorners) {
+        exportCtx.save();
         const radius = Math.min(exportWidth, exportHeight) * 0.05;
         roundRect(exportCtx, 0, 0, exportWidth, exportHeight, radius);
         exportCtx.clip();
@@ -82,9 +81,12 @@ export default function Export() {
 
       exportCtx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
       
-      exportCtx.restore(); // Restore from clipping
+      // Restore from clipping if it was applied
+      if (state.roundedCorners) {
+        exportCtx.restore();
+      }
 
-      // Draw features on top (outside clipping)
+      // Draw features on top (always outside clipping)
       exportCtx.fillStyle = '#ef4444';
       state.features.forEach(feature => {
         if (feature.type === 'circle') {
