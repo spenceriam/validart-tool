@@ -42,12 +42,30 @@ export default function Preview() {
     
     let canvasWidth, canvasHeight;
 
-    if (containerWidth / containerHeight > cardAspectRatio) {
-      canvasHeight = containerHeight;
+    // Calculate canvas size to fit within container while maintaining aspect ratio
+    // Leave some padding (20px on each side)
+    const maxWidth = containerWidth - 40;
+    const maxHeight = containerHeight - 40;
+
+    if (maxWidth / maxHeight > cardAspectRatio) {
+      // Container is wider, limit by height
+      canvasHeight = maxHeight;
       canvasWidth = canvasHeight * cardAspectRatio;
     } else {
-      canvasWidth = containerWidth;
+      // Container is taller, limit by width
+      canvasWidth = maxWidth;
       canvasHeight = canvasWidth / cardAspectRatio;
+    }
+
+    // Ensure minimum size for usability
+    const minSize = 200;
+    if (canvasWidth < minSize) {
+      canvasWidth = minSize;
+      canvasHeight = canvasWidth / cardAspectRatio;
+    }
+    if (canvasHeight < minSize) {
+      canvasHeight = minSize;
+      canvasWidth = canvasHeight * cardAspectRatio;
     }
 
     const pixelsPerMM = canvasWidth / state.cardWidth;

@@ -9,9 +9,12 @@ export default function TrimBleedLines() {
 
   const handleTrimDistanceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
+    
+    // Allow empty string, decimal point, or valid numbers
     if (value === '' || value === '.') {
-      return; // Allow empty or just decimal point while typing
+      return;
     }
+    
     const distance = parseFloat(value);
     if (!isNaN(distance) && distance >= 0) {
       dispatch({
@@ -23,9 +26,12 @@ export default function TrimBleedLines() {
 
   const handleBleedDistanceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
+    
+    // Allow empty string, decimal point, or valid numbers
     if (value === '' || value === '.') {
-      return; // Allow empty or just decimal point while typing
+      return;
     }
+    
     const distance = parseFloat(value);
     if (!isNaN(distance) && distance >= 0) {
       dispatch({
