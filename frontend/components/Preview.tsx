@@ -147,43 +147,6 @@ export default function Preview() {
         }
       });
 
-      // Draw Danger Zone overlay - always outside of clipping
-      const dangerZoneInsetPixels = (state.safeZonePercent / 100) * Math.min(canvasWidth, canvasHeight);
-      
-      // Create a striped pattern for the danger zone
-      const stripeCanvas = document.createElement('canvas');
-      stripeCanvas.width = 16;
-      stripeCanvas.height = 16;
-      const stripeCtx = stripeCanvas.getContext('2d');
-      if (stripeCtx) {
-        stripeCtx.strokeStyle = 'rgba(239, 68, 68, 0.7)';
-        stripeCtx.lineWidth = 4;
-        stripeCtx.beginPath();
-        stripeCtx.moveTo(-4, 4);
-        stripeCtx.lineTo(4, -4);
-        stripeCtx.moveTo(12, 20);
-        stripeCtx.lineTo(20, 12);
-        stripeCtx.stroke();
-      }
-      
-      const stripedPattern = ctx.createPattern(stripeCanvas, 'repeat');
-      if (stripedPattern) {
-        ctx.save();
-        ctx.fillStyle = stripedPattern;
-        ctx.globalAlpha = 0.5;
-        
-        // Top danger zone
-        ctx.fillRect(0, 0, canvasWidth, dangerZoneInsetPixels);
-        // Bottom danger zone
-        ctx.fillRect(0, canvasHeight - dangerZoneInsetPixels, canvasWidth, dangerZoneInsetPixels);
-        // Left danger zone
-        ctx.fillRect(0, dangerZoneInsetPixels, dangerZoneInsetPixels, canvasHeight - 2 * dangerZoneInsetPixels);
-        // Right danger zone
-        ctx.fillRect(canvasWidth - dangerZoneInsetPixels, dangerZoneInsetPixels, dangerZoneInsetPixels, canvasHeight - 2 * dangerZoneInsetPixels);
-        
-        ctx.restore();
-      }
-
       // Draw Card Border (always on top)
       ctx.strokeStyle = 'hsl(var(--foreground) / 0.5)';
       ctx.lineWidth = 1;
@@ -198,59 +161,9 @@ export default function Preview() {
     img.src = state.artwork;
   };
 
-  const checkCollisions = () => {
-    if (!state.artwork || state.features.length === 0) {
-      dispatch({ type: 'SET_BANNER', payload: null });
-      return;
-    }
-
-    const safeZoneInsetMM = (state.safeZonePercent / 100) * Math.min(state.cardWidth, state.cardHeight);
-    let hasCollision = false;
-    
-    for (const feature of state.features) {
-      let featureLeft, featureRight, featureTop, featureBottom;
-
-      if (feature.type === 'circle') {
-        const { x, y, r } = feature;
-        featureLeft = x - r;
-        featureRight = x + r;
-        featureTop = y - r;
-        featureBottom = y + r;
-      } else if (feature.type === 'slot') {
-        const { x, y, width, height } = feature;
-        featureLeft = x - width / 2;
-        featureRight = x + width / 2;
-        featureTop = y - height / 2;
-        featureBottom = y + height / 2;
-      } else {
-        continue;
-      }
-      
-      if (
-        featureLeft < safeZoneInsetMM ||
-        featureRight > state.cardWidth - safeZoneInsetMM ||
-        featureTop < safeZoneInsetMM ||
-        featureBottom > state.cardHeight - safeZoneInsetMM
-      ) {
-        hasCollision = true;
-        break;
-      }
-    }
-    
-    if (hasCollision) {
-      dispatch({ type: 'SET_BANNER', payload: { message: 'Feature is in danger zone – check position', type: 'danger' } });
-    } else {
-      dispatch({ type: 'SET_BANNER', payload: { message: 'OK to print', type: 'success' } });
-    }
-  };
-
   useEffect(() => {
     updatePreview();
-  }, [state.artwork, state.cardWidth, state.cardHeight, state.roundedCorners, state.features, state.safeZonePercent]);
-
-  useEffect(() => {
-    checkCollisions();
-  }, [state.features, state.safeZonePercent, state.cardWidth, state.cardHeight]);
+  }, [state.artwork, state.cardWidth, state.cardHeight, state.roundedCorners, state.features]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     const canvas = canvasRef.current;
@@ -324,30 +237,8 @@ export default function Preview() {
     };
   }, [state.isDragging, state.lastMousePos, state.canvasScale]);
 
-  const getBannerIcon = () => {
-    if (!state.banner) return null;
-    switch (state.banner.type) {
-      case 'success': return <CheckCircle className="h-4 w-4" />;
-      case 'warning': return <AlertTriangle className="h-4 w-4" />;
-      case 'danger': return <XCircle className="h-4 w-4" />;
-      default: return null;
-    }
-  };
-
-  const getBannerVariant = () => {
-    if (!state.banner) return 'default';
-    return state.banner.type === 'danger' ? 'destructive' : 'default';
-  };
-
   return (
     <div className="w-full max-w-4xl space-y-4">
-      {state.banner && (
-        <Alert variant={getBannerVariant()} className="max-w-md mx-auto">
-          {getBannerIcon()}
-          <AlertDescription>{state.banner.message}</AlertDescription>
-        </Alert>
-      )}
-      
       <div className="flex justify-center">
         <div ref={containerRef} className="relative inline-block shadow-lg cursor-grab active:cursor-grabbing" onMouseDown={handleMouseDown}>
           <canvas ref={canvasRef} className="block max-w-full h-auto rounded-lg border border-border" />

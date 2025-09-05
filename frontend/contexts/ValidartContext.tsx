@@ -24,7 +24,6 @@ export interface ValidartState {
   artworkFile: File | null;
   cardWidth: number;
   cardHeight: number;
-  safeZonePercent: number;
   roundedCorners: boolean;
   features: Feature[];
   canvasWidth: number;
@@ -40,7 +39,6 @@ export interface ValidartState {
 type ValidartAction =
   | { type: 'SET_ARTWORK'; payload: { artwork: string; file: File } }
   | { type: 'SET_CARD_DIMENSIONS'; payload: { width: number; height: number } }
-  | { type: 'SET_SAFE_ZONE'; payload: number }
   | { type: 'SET_ROUNDED_CORNERS'; payload: boolean }
   | { type: 'ADD_FEATURE'; payload: Feature }
   | { type: 'UPDATE_FEATURE'; payload: { id: string; updates: Partial<Feature> } }
@@ -58,7 +56,6 @@ const initialState: ValidartState = {
   artworkFile: null,
   cardWidth: 101.6,
   cardHeight: 139.4,
-  safeZonePercent: 12,
   roundedCorners: true,
   features: [],
   canvasWidth: 400,
@@ -84,11 +81,6 @@ function validartReducer(state: ValidartState, action: ValidartAction): Validart
         ...state,
         cardWidth: action.payload.width,
         cardHeight: action.payload.height,
-      };
-    case 'SET_SAFE_ZONE':
-      return {
-        ...state,
-        safeZonePercent: action.payload,
       };
     case 'SET_ROUNDED_CORNERS':
       return {
