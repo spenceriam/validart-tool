@@ -44,8 +44,8 @@ type ValidartAction =
 const initialState: ValidartState = {
   artwork: null,
   artworkFile: null,
-  cardWidth: 85,
-  cardHeight: 55,
+  cardWidth: 101.6,
+  cardHeight: 139.4,
   safeZonePercent: 12,
   roundedCorners: false,
   punchHoles: [],
