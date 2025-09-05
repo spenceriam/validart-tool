@@ -38,6 +38,7 @@ class Validart {
     this.isResizing = false;
     this.dragTarget = null;
     this.lastMousePos = { x: 0, y: 0 };
+    this.touchStartPos = { x: 0, y: 0 };
     
     this.init();
     this.setupStorageCleanup();
@@ -85,6 +86,7 @@ class Validart {
     // Punch hole templates
     document.querySelectorAll('.punch-hole-template').forEach(template => {
       template.addEventListener('mousedown', this.handleTemplateMouseDown.bind(this));
+      template.addEventListener('touchstart', this.handleTemplateTouchStart.bind(this), { passive: false });
     });
 
     // Clear punch holes
@@ -92,8 +94,13 @@ class Validart {
 
     // Canvas interactions
     this.canvas.addEventListener('mousedown', this.handleCanvasMouseDown.bind(this));
+    this.canvas.addEventListener('touchstart', this.handleCanvasTouchStart.bind(this), { passive: false });
+    
     document.addEventListener('mousemove', this.handleMouseMove.bind(this));
+    document.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
+    
     document.addEventListener('mouseup', this.handleMouseUp.bind(this));
+    document.addEventListener('touchend', this.handleTouchEnd.bind(this));
 
     // Download proof
     document.getElementById('download-proof').addEventListener('click', this.downloadProof.bind(this));
@@ -184,12 +191,20 @@ class Validart {
 
   handleTemplateMouseDown(event) {
     event.preventDefault();
-    const template = event.currentTarget;
+    this.startTemplateDrag(event.currentTarget, event.clientX, event.clientY);
+  }
+
+  handleTemplateTouchStart(event) {
+    event.preventDefault();
+    const touch = event.touches[0];
+    this.startTemplateDrag(event.currentTarget, touch.clientX, touch.clientY);
+  }
+
+  startTemplateDrag(template, clientX, clientY) {
     const size = parseInt(template.dataset.size);
-    
     const rect = template.getBoundingClientRect();
-    const offsetX = event.clientX - rect.left - rect.width / 2;
-    const offsetY = event.clientY - rect.top - rect.height / 2;
+    const offsetX = clientX - rect.left - rect.width / 2;
+    const offsetY = clientY - rect.top - rect.height / 2;
     
     this.isDragging = true;
     this.dragTarget = {
@@ -205,7 +220,20 @@ class Validart {
     const rect = this.canvas.getBoundingClientRect();
     const x = (event.clientX - rect.left) / this.canvasScale;
     const y = (event.clientY - rect.top) / this.canvasScale;
-    
+    this.handleCanvasInteraction(x, y);
+  }
+
+  handleCanvasTouchStart(event) {
+    event.preventDefault();
+    const touch = event.touches[0];
+    const rect = this.canvas.getBoundingClientRect();
+    const x = (touch.clientX - rect.left) / this.canvasScale;
+    const y = (touch.clientY - rect.top) / this.canvasScale;
+    this.touchStartPos = { x: touch.clientX, y: touch.clientY };
+    this.handleCanvasInteraction(x, y);
+  }
+
+  handleCanvasInteraction(x, y) {
     // Check if clicking on a resize handle
     for (let i = this.punchHoles.length - 1; i >= 0; i--) {
       const hole = this.punchHoles[i];
@@ -213,7 +241,7 @@ class Validart {
       const handleY = hole.y + hole.r;
       const distance = Math.sqrt((x - handleX) ** 2 + (y - handleY) ** 2);
       
-      if (distance <= 6) {
+      if (distance <= 8) {
         this.isResizing = true;
         this.dragTarget = { type: 'resize', index: i };
         return;
@@ -235,12 +263,22 @@ class Validart {
   }
 
   handleMouseMove(event) {
+    this.handleMove(event.clientX, event.clientY);
+  }
+
+  handleTouchMove(event) {
+    event.preventDefault();
+    const touch = event.touches[0];
+    this.handleMove(touch.clientX, touch.clientY);
+  }
+
+  handleMove(clientX, clientY) {
     if (this.isDragging && this.dragTarget) {
       if (this.dragTarget.type === 'template') {
         // Handle template dragging
         const canvasRect = this.canvas.getBoundingClientRect();
-        const canvasX = event.clientX - canvasRect.left;
-        const canvasY = event.clientY - canvasRect.top;
+        const canvasX = clientX - canvasRect.left;
+        const canvasY = clientY - canvasRect.top;
         
         if (canvasX >= 0 && canvasX <= canvasRect.width && 
             canvasY >= 0 && canvasY <= canvasRect.height) {
@@ -265,8 +303,8 @@ class Validart {
       } else if (this.dragTarget.type === 'hole') {
         // Handle hole dragging
         const rect = this.canvas.getBoundingClientRect();
-        const x = (event.clientX - rect.left) / this.canvasScale;
-        const y = (event.clientY - rect.top) / this.canvasScale;
+        const x = (clientX - rect.left) / this.canvasScale;
+        const y = (clientY - rect.top) / this.canvasScale;
         
         const hole = this.punchHoles[this.dragTarget.index];
         const deltaX = x - this.lastMousePos.x;
@@ -282,8 +320,8 @@ class Validart {
     } else if (this.isResizing && this.dragTarget) {
       // Handle hole resizing
       const rect = this.canvas.getBoundingClientRect();
-      const x = (event.clientX - rect.left) / this.canvasScale;
-      const y = (event.clientY - rect.top) / this.canvasScale;
+      const x = (clientX - rect.left) / this.canvasScale;
+      const y = (clientY - rect.top) / this.canvasScale;
       
       const hole = this.punchHoles[this.dragTarget.index];
       const distance = Math.sqrt((x - hole.x) ** 2 + (y - hole.y) ** 2);
@@ -296,6 +334,14 @@ class Validart {
   }
 
   handleMouseUp() {
+    this.endInteraction();
+  }
+
+  handleTouchEnd() {
+    this.endInteraction();
+  }
+
+  endInteraction() {
     this.isDragging = false;
     this.isResizing = false;
     this.dragTarget = null;
@@ -311,6 +357,7 @@ class Validart {
     if (!this.artworkImg) {
       this.canvas.width = 400;
       this.canvas.height = 250;
+      this.canvasScale = 1;
       this.ctx.fillStyle = '#f0f0f0';
       this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
       this.ctx.fillStyle = '#999';
@@ -327,10 +374,10 @@ class Validart {
     
     let canvasWidth, canvasHeight;
     if (aspectRatio > 1) {
-      canvasWidth = Math.min(maxCanvasSize, this.cardWidth * 4);
+      canvasWidth = Math.min(maxCanvasSize, this.cardWidth * 6);
       canvasHeight = canvasWidth / aspectRatio;
     } else {
-      canvasHeight = Math.min(maxCanvasSize, this.cardHeight * 4);
+      canvasHeight = Math.min(maxCanvasSize, this.cardHeight * 6);
       canvasWidth = canvasHeight * aspectRatio;
     }
 
@@ -425,10 +472,8 @@ class Validart {
     const safeZoneInset = (this.safeZonePercent / 100) * Math.min(this.cardWidth, this.cardHeight);
     const minRequiredSize = safeZoneInset * 2;
     
-    const artworkWidthMM = this.cardWidth;
-    const artworkHeightMM = this.cardHeight;
-    
-    if (artworkWidthMM < minRequiredSize || artworkHeightMM < minRequiredSize) {
+    // Check if the card dimensions themselves are smaller than safe zone requirements
+    if (this.cardWidth < minRequiredSize || this.cardHeight < minRequiredSize) {
       this.showBanner('Artwork too small – upload larger file', 'danger');
     }
   }
@@ -439,16 +484,16 @@ class Validart {
       return;
     }
 
-    // Simple collision detection - check if any punch hole overlaps with safe zone
+    // Collision detection - check if any punch hole overlaps with safe zone
     const safeZoneInset = (this.safeZonePercent / 100) * Math.min(this.cardWidth, this.cardHeight) * this.canvasScale;
     
     let hasCollision = false;
     
     for (const hole of this.punchHoles) {
-      const holeLeft = hole.x - hole.r * this.canvasScale;
-      const holeRight = hole.x + hole.r * this.canvasScale;
-      const holeTop = hole.y - hole.r * this.canvasScale;
-      const holeBottom = hole.y + hole.r * this.canvasScale;
+      const holeLeft = (hole.x - hole.r) * this.canvasScale;
+      const holeRight = (hole.x + hole.r) * this.canvasScale;
+      const holeTop = (hole.y - hole.r) * this.canvasScale;
+      const holeBottom = (hole.y + hole.r) * this.canvasScale;
       
       // Check if hole intersects with artwork area (inside safe zone)
       if (holeRight > safeZoneInset && holeLeft < this.canvas.width - safeZoneInset &&
@@ -539,8 +584,8 @@ class Validart {
     // Check for old data on load
     const lastEdit = localStorage.getItem('validart_last_edit');
     if (lastEdit) {
-      const daysSinceEdit = (Date.now() - parseInt(lastEdit)) / (1000 * 60 * 60 * 24);
-      if (daysSinceEdit > 2) { // 48 hours
+      const hoursSinceEdit = (Date.now() - parseInt(lastEdit)) / (1000 * 60 * 60);
+      if (hoursSinceEdit > 48) { // 48 hours
         this.clearStorage();
       }
     }
@@ -559,6 +604,15 @@ class Validart {
     this.artworkImg = null;
     this.punchHoles = [];
     document.getElementById('file-input').value = '';
+    document.getElementById('width-input').value = '85';
+    document.getElementById('height-input').value = '55';
+    document.getElementById('safe-zone-slider').value = '12';
+    document.getElementById('safe-zone-value').textContent = '12';
+    document.getElementById('rounded-corners').checked = false;
+    this.cardWidth = 85;
+    this.cardHeight = 55;
+    this.safeZonePercent = 12;
+    this.roundedCorners = false;
     this.updatePreview();
     this.hideBanner();
     

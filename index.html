@@ -31,101 +31,109 @@ SOFTWARE.
   <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <header>
-    <div class="header-content">
-      <h1>Validart</h1>
-      <p>Artwork Safety Preview for Event Cards</p>
-      <button id="theme-toggle" aria-label="Toggle dark theme">🌙</button>
-    </div>
-  </header>
-
-  <main>
-    <div class="banner" id="banner" style="display: none;"></div>
-    
-    <section class="upload-section">
-      <h2>1. Upload Artwork</h2>
-      <div class="upload-area" id="upload-area">
-        <input type="file" id="file-input" accept=".jpg,.jpeg,.png,.svg" aria-label="Upload artwork file">
-        <label for="file-input">
-          <span>Click to upload or drag artwork here</span>
-          <small>JPG, PNG, SVG • Max 10MB</small>
-        </label>
-      </div>
-    </section>
-
-    <section class="size-section">
-      <h2>2. Card Dimensions</h2>
-      <div class="input-group">
-        <label for="width-input">Width (mm):</label>
-        <input type="number" id="width-input" value="85" min="10" max="500" aria-label="Card width in millimeters">
-      </div>
-      <div class="input-group">
-        <label for="height-input">Height (mm):</label>
-        <input type="number" id="height-input" value="55" min="10" max="500" aria-label="Card height in millimeters">
-      </div>
-    </section>
-
-    <section class="safe-zone-section">
-      <h2>3. Safe Zone</h2>
-      <div class="input-group">
-        <label for="safe-zone-slider">Safe zone size: <span id="safe-zone-value">12</span>%</label>
-        <input type="range" id="safe-zone-slider" min="10" max="15" value="12" step="1" aria-label="Safe zone percentage">
-      </div>
-    </section>
-
-    <section class="options-section">
-      <h2>4. Options</h2>
-      <div class="toggle-group">
-        <label class="toggle">
-          <input type="checkbox" id="rounded-corners" aria-label="Enable rounded corners">
-          <span class="toggle-slider"></span>
-          Rounded corners
-        </label>
-      </div>
-    </section>
-
-    <section class="punch-holes-section">
-      <h2>5. Punch Holes (Freestyle)</h2>
-      <div class="punch-hole-controls">
-        <div class="punch-hole-sidebar">
-          <h3>Drag circles to canvas:</h3>
-          <div class="punch-hole-templates">
-            <div class="punch-hole-template" data-size="3" aria-label="3mm punch hole template"></div>
-            <div class="punch-hole-template" data-size="5" aria-label="5mm punch hole template"></div>
-            <div class="punch-hole-template" data-size="7" aria-label="7mm punch hole template"></div>
-          </div>
-          <button id="clear-holes" aria-label="Clear all punch holes">Clear all holes</button>
+  <div class="container">
+    <header>
+      <div class="header-content">
+        <div class="header-left">
+          <h1>Validart</h1>
+          <p>Artwork Safety Preview for Event Cards</p>
         </div>
+        <button id="theme-toggle" aria-label="Toggle dark theme">🌙</button>
       </div>
-    </section>
+    </header>
 
-    <section class="preview-section">
-      <h2>6. Preview</h2>
-      <div class="canvas-container">
-        <canvas id="preview-canvas" aria-label="Artwork preview canvas"></canvas>
-        <div class="safe-zone-overlay" id="safe-zone-overlay"></div>
-        <div class="punch-holes-container" id="punch-holes-container"></div>
-      </div>
-    </section>
+    <main>
+      <div class="banner" id="banner" style="display: none;"></div>
+      
+      <section class="upload-section">
+        <h2>1. Upload Artwork</h2>
+        <div class="upload-area" id="upload-area">
+          <input type="file" id="file-input" accept=".jpg,.jpeg,.png,.svg" aria-label="Upload artwork file">
+          <label for="file-input">
+            <span>Click to upload or drag artwork here</span>
+            <small>JPG, PNG, SVG • Max 10MB</small>
+          </label>
+        </div>
+      </section>
 
-    <section class="export-section">
-      <h2>7. Download Proof</h2>
-      <div class="export-controls">
-        <label for="dpi-select">DPI:</label>
-        <select id="dpi-select" aria-label="Select DPI for export">
-          <option value="150">150 DPI</option>
-          <option value="300" selected>300 DPI</option>
-          <option value="600">600 DPI</option>
-        </select>
-        <button id="download-proof" aria-label="Download proof image">Download Proof</button>
-      </div>
-    </section>
-  </main>
+      <section class="size-section">
+        <h2>2. Card Dimensions</h2>
+        <div class="input-row">
+          <div class="input-group">
+            <label for="width-input">Width (mm):</label>
+            <input type="number" id="width-input" value="85" min="10" max="500" aria-label="Card width in millimeters">
+          </div>
+          <div class="input-group">
+            <label for="height-input">Height (mm):</label>
+            <input type="number" id="height-input" value="55" min="10" max="500" aria-label="Card height in millimeters">
+          </div>
+        </div>
+      </section>
 
-  <footer>
-    <p>&copy; 2024 Validart. Open source tool for artwork safety preview.</p>
-    <button id="clear-storage" aria-label="Clear browser storage">Clear Storage</button>
-  </footer>
+      <section class="safe-zone-section">
+        <h2>3. Safe Zone</h2>
+        <div class="input-group">
+          <label for="safe-zone-slider">Safe zone size: <span id="safe-zone-value">12</span>%</label>
+          <input type="range" id="safe-zone-slider" min="10" max="15" value="12" step="1" aria-label="Safe zone percentage">
+        </div>
+      </section>
+
+      <section class="options-section">
+        <h2>4. Options</h2>
+        <div class="toggle-group">
+          <label class="toggle">
+            <input type="checkbox" id="rounded-corners" aria-label="Enable rounded corners">
+            <span class="toggle-slider"></span>
+            Rounded corners
+          </label>
+        </div>
+      </section>
+
+      <section class="punch-holes-section">
+        <h2>5. Punch Holes (Freestyle)</h2>
+        <div class="punch-hole-controls">
+          <div class="punch-hole-sidebar">
+            <h3>Drag circles to canvas:</h3>
+            <div class="punch-hole-templates">
+              <div class="punch-hole-template" data-size="3" aria-label="3mm punch hole template"></div>
+              <div class="punch-hole-template" data-size="5" aria-label="5mm punch hole template"></div>
+              <div class="punch-hole-template" data-size="7" aria-label="7mm punch hole template"></div>
+            </div>
+            <button id="clear-holes" aria-label="Clear all punch holes">Clear all holes</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="preview-section">
+        <h2>6. Preview</h2>
+        <div class="canvas-container">
+          <canvas id="preview-canvas" aria-label="Artwork preview canvas"></canvas>
+          <div class="safe-zone-overlay" id="safe-zone-overlay"></div>
+          <div class="punch-holes-container" id="punch-holes-container"></div>
+        </div>
+      </section>
+
+      <section class="export-section">
+        <h2>7. Download Proof</h2>
+        <div class="export-controls">
+          <div class="export-row">
+            <label for="dpi-select">DPI:</label>
+            <select id="dpi-select" aria-label="Select DPI for export">
+              <option value="150">150 DPI</option>
+              <option value="300" selected>300 DPI</option>
+              <option value="600">600 DPI</option>
+            </select>
+          </div>
+          <button id="download-proof" aria-label="Download proof image">Download Proof</button>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>&copy; 2024 Validart. Open source tool for artwork safety preview.</p>
+      <button id="clear-storage" aria-label="Clear browser storage">Clear Storage</button>
+    </footer>
+  </div>
 
   <script src="validart.js"></script>
 </body>

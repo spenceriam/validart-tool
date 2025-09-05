@@ -34,6 +34,7 @@ SOFTWARE.
   --safe-zone-color: var(--danger-color);
   --punch-hole-color: var(--danger-color);
   --canvas-bg: #f8f9fa;
+  --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 [data-theme="dark"] {
@@ -46,6 +47,7 @@ SOFTWARE.
   --danger-color: #ff6b6b;
   --warning-color: #ffd43b;
   --canvas-bg: #2d2d2d;
+  --shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 * {
@@ -60,82 +62,96 @@ body {
   color: var(--text-color);
   background-color: var(--bg-color);
   transition: background-color 0.3s ease, color 0.3s ease;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 header {
   background: var(--primary-color);
   color: white;
-  padding: 1rem 0;
+  padding: 1rem;
   position: sticky;
   top: 0;
   z-index: 100;
+  box-shadow: var(--shadow);
 }
 
 .header-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-h1 {
-  font-size: 2rem;
+.header-left h1 {
+  font-size: 1.8rem;
   font-weight: 700;
+  margin-bottom: 0.25rem;
 }
 
-header p {
+.header-left p {
   font-size: 0.9rem;
   opacity: 0.9;
 }
 
 #theme-toggle {
   background: none;
-  border: 2px solid white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
   color: white;
   padding: 0.5rem;
   border-radius: 50%;
   cursor: pointer;
   font-size: 1.2rem;
   transition: all 0.3s ease;
+  min-width: 44px;
+  min-height: 44px;
 }
 
 #theme-toggle:hover {
   background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
 main {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
+  flex: 1;
+  padding: 1rem;
 }
 
 section {
-  margin-bottom: 3rem;
-  padding: 2rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: 12px;
   background: var(--bg-color);
+  box-shadow: var(--shadow);
 }
 
 h2 {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   margin-bottom: 1rem;
   color: var(--primary-color);
+  font-weight: 600;
 }
 
 h3 {
-  font-size: 1.2rem;
-  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+  font-weight: 500;
 }
 
 .banner {
   padding: 1rem;
   margin-bottom: 1rem;
-  border-radius: 4px;
+  border-radius: 8px;
   font-weight: 600;
   text-align: center;
+  border: none;
 }
 
 .banner.success {
@@ -155,11 +171,12 @@ h3 {
 
 .upload-area {
   border: 2px dashed var(--border-color);
-  border-radius: 8px;
-  padding: 3rem;
+  border-radius: 12px;
+  padding: 2rem;
   text-align: center;
   transition: all 0.3s ease;
   cursor: pointer;
+  background: rgba(0, 123, 255, 0.02);
 }
 
 .upload-area:hover {
@@ -170,6 +187,7 @@ h3 {
 .upload-area.dragover {
   border-color: var(--primary-color);
   background: rgba(0, 123, 255, 0.1);
+  transform: scale(1.02);
 }
 
 #file-input {
@@ -185,10 +203,17 @@ h3 {
   display: block;
   font-size: 1.1rem;
   margin-bottom: 0.5rem;
+  font-weight: 500;
 }
 
 .upload-area label small {
   color: var(--secondary-color);
+}
+
+.input-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
 }
 
 .input-group {
@@ -199,23 +224,65 @@ h3 {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
+  font-size: 0.95rem;
 }
 
 input[type="number"],
 input[type="range"],
 select {
   width: 100%;
-  padding: 0.5rem;
+  padding: 0.75rem;
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: 8px;
   background: var(--bg-color);
   color: var(--text-color);
   font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+input[type="number"]:focus,
+select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
 input[type="range"] {
   padding: 0;
-  height: 2rem;
+  height: 2.5rem;
+  background: transparent;
+  border: none;
+}
+
+input[type="range"]::-webkit-slider-track {
+  height: 6px;
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: var(--primary-color);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+input[type="range"]::-moz-range-track {
+  height: 6px;
+  background: var(--border-color);
+  border-radius: 3px;
+  border: none;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: var(--primary-color);
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
 }
 
 .toggle-group {
@@ -227,9 +294,10 @@ input[type="range"] {
 .toggle {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
   cursor: pointer;
   user-select: none;
+  min-height: 44px;
 }
 
 .toggle input[type="checkbox"] {
@@ -237,10 +305,10 @@ input[type="range"] {
 }
 
 .toggle-slider {
-  width: 40px;
-  height: 20px;
+  width: 50px;
+  height: 26px;
   background: var(--border-color);
-  border-radius: 20px;
+  border-radius: 26px;
   position: relative;
   transition: background 0.3s ease;
 }
@@ -248,13 +316,14 @@ input[type="range"] {
 .toggle-slider::before {
   content: '';
   position: absolute;
-  width: 16px;
-  height: 16px;
+  width: 22px;
+  height: 22px;
   background: white;
   border-radius: 50%;
   top: 2px;
   left: 2px;
   transition: transform 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .toggle input[type="checkbox"]:checked + .toggle-slider {
@@ -262,7 +331,7 @@ input[type="range"] {
 }
 
 .toggle input[type="checkbox"]:checked + .toggle-slider::before {
-  transform: translateX(20px);
+  transform: translateX(24px);
 }
 
 .punch-hole-controls {
@@ -273,17 +342,17 @@ input[type="range"] {
 
 .punch-hole-sidebar {
   min-width: 200px;
+  flex: 1;
 }
 
 .punch-hole-templates {
   display: flex;
   gap: 1rem;
   margin-bottom: 1rem;
+  justify-content: center;
 }
 
 .punch-hole-template {
-  width: 40px;
-  height: 40px;
   background: var(--punch-hole-color);
   border-radius: 50%;
   cursor: grab;
@@ -294,6 +363,13 @@ input[type="range"] {
   color: white;
   font-weight: bold;
   font-size: 0.8rem;
+  border: 2px solid white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.punch-hole-template:hover {
+  transform: scale(1.1);
 }
 
 .punch-hole-template:active {
@@ -324,6 +400,7 @@ input[type="range"] {
   font-size: 0.7rem;
   color: var(--text-color);
   margin-top: 0.25rem;
+  font-weight: normal;
 }
 
 button {
@@ -331,33 +408,38 @@ button {
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 1rem;
+  font-weight: 500;
   transition: all 0.3s ease;
+  min-height: 44px;
 }
 
 button:hover {
-  background: var(--primary-color);
   filter: brightness(0.9);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
 }
 
 button:active {
-  transform: translateY(1px);
+  transform: translateY(0);
 }
 
 #clear-holes {
   background: var(--secondary-color);
+  width: 100%;
 }
 
 .canvas-container {
   position: relative;
   display: inline-block;
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
   background: var(--canvas-bg);
   max-width: 100%;
+  box-shadow: var(--shadow);
 }
 
 #preview-canvas {
@@ -376,12 +458,12 @@ button:active {
   background: repeating-linear-gradient(
     45deg,
     var(--safe-zone-color) 0px,
-    var(--safe-zone-color) 10px,
-    transparent 10px,
-    transparent 20px
+    var(--safe-zone-color) 8px,
+    transparent 8px,
+    transparent 16px
   );
-  opacity: 0.3;
-  animation: moveStripes 1s linear infinite;
+  opacity: 0.4;
+  animation: moveStripes 2s linear infinite;
 }
 
 @keyframes moveStripes {
@@ -405,7 +487,8 @@ button:active {
   pointer-events: all;
   cursor: move;
   border: 2px solid white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: filter 0.2s ease;
 }
 
 .punch-hole:hover {
@@ -414,14 +497,15 @@ button:active {
 
 .punch-hole .resize-handle {
   position: absolute;
-  bottom: -4px;
-  right: -4px;
-  width: 12px;
-  height: 12px;
+  bottom: -6px;
+  right: -6px;
+  width: 14px;
+  height: 14px;
   background: white;
-  border: 1px solid var(--punch-hole-color);
+  border: 2px solid var(--punch-hole-color);
   border-radius: 50%;
   cursor: nw-resize;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .export-controls {
@@ -431,8 +515,15 @@ button:active {
   flex-wrap: wrap;
 }
 
+.export-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .export-controls label {
   font-weight: 500;
+  min-width: 40px;
 }
 
 .export-controls select {
@@ -442,43 +533,59 @@ button:active {
 
 footer {
   background: var(--border-color);
-  padding: 2rem 1rem;
+  padding: 1.5rem;
   text-align: center;
-  margin-top: 3rem;
+  margin-top: auto;
 }
 
 footer p {
   margin-bottom: 1rem;
+  font-size: 0.9rem;
 }
 
 #clear-storage {
   background: var(--secondary-color);
   font-size: 0.9rem;
-  padding: 0.5rem 1rem;
+  padding: 0.6rem 1.2rem;
 }
 
-@media (max-width: 768px) {
+/* Mobile Responsive */
+@media (max-width: 600px) {
+  .container {
+    padding: 0;
+  }
+
   .header-content {
     flex-direction: column;
     text-align: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
   }
 
-  h1 {
+  .header-left h1 {
     font-size: 1.5rem;
   }
 
   main {
-    padding: 1rem;
+    padding: 0.75rem;
   }
 
   section {
     padding: 1rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .input-row {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
   }
 
   .punch-hole-controls {
     flex-direction: column;
+    gap: 1rem;
+  }
+
+  .punch-hole-templates {
+    justify-content: center;
   }
 
   .export-controls {
@@ -486,22 +593,57 @@ footer p {
     align-items: stretch;
   }
 
+  .export-row {
+    justify-content: space-between;
+  }
+
   .export-controls select,
   .export-controls button {
     width: 100%;
   }
-}
 
-@media (max-width: 480px) {
   .upload-area {
-    padding: 2rem 1rem;
-  }
-
-  .punch-hole-templates {
-    justify-content: center;
+    padding: 1.5rem 1rem;
   }
 
   .toggle-group {
     flex-direction: column;
+  }
+}
+
+@media (max-width: 400px) {
+  .header-left h1 {
+    font-size: 1.3rem;
+  }
+  
+  .header-left p {
+    font-size: 0.8rem;
+  }
+  
+  h2 {
+    font-size: 1.2rem;
+  }
+  
+  .punch-hole-templates {
+    gap: 0.75rem;
+  }
+  
+  button {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Touch targets */
+@media (hover: none) and (pointer: coarse) {
+  button,
+  .toggle,
+  .punch-hole-template {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .upload-area {
+    padding: 2rem 1rem;
   }
 }
