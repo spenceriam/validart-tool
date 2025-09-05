@@ -1,0 +1,1 @@
+{"id": "validart-tool-gbmi", "lang": "typescript"}
