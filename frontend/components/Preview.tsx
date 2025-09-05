@@ -62,13 +62,16 @@ export default function Preview() {
       payload: { width: canvasWidth, height: canvasHeight, scale: pixelsPerMM }
     });
 
+    // Clear canvas
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
     if (!state.artwork) {
-      ctx.fillStyle = '#f8f9fa';
+      ctx.fillStyle = 'hsl(var(--muted))';
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-      ctx.strokeStyle = '#e0e0e0';
+      ctx.strokeStyle = 'hsl(var(--border))';
       ctx.lineWidth = 2;
       ctx.strokeRect(1, 1, canvasWidth - 2, canvasHeight - 2);
-      ctx.fillStyle = '#6c757d';
+      ctx.fillStyle = 'hsl(var(--muted-foreground))';
       ctx.font = `${Math.min(canvasWidth, canvasHeight) / 20}px system-ui`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -78,11 +81,19 @@ export default function Preview() {
       return;
     }
 
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
+    // 1. Draw artwork
     const img = new Image();
     img.onload = () => {
+      ctx.save();
+      
+      // 2. Clip to card shape (rounded or square)
+      if (state.roundedCorners) {
+        const radius = Math.min(canvasWidth, canvasHeight) * 0.05;
+        roundRect(ctx, 0, 0, canvasWidth, canvasHeight, radius);
+        ctx.clip();
+      }
+
+      // 3. Draw the artwork to fill the clipped area
       const artworkAspect = img.width / img.height;
       let drawWidth, drawHeight, drawX, drawY;
       
@@ -97,17 +108,9 @@ export default function Preview() {
         drawX = 0;
         drawY = (canvasHeight - drawHeight) / 2;
       }
-
       ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
-
-      if (state.roundedCorners) {
-        const radius = Math.min(canvasWidth, canvasHeight) * 0.05;
-        ctx.globalCompositeOperation = 'destination-in';
-        roundRect(ctx, 0, 0, canvasWidth, canvasHeight, radius);
-        ctx.fill();
-        ctx.globalCompositeOperation = 'source-over';
-      }
-
+      
+      // 4. Draw features on top of artwork
       state.features.forEach(feature => {
         ctx.fillStyle = '#ef4444';
         if (feature.type === 'circle') {
@@ -126,9 +129,45 @@ export default function Preview() {
         }
       });
 
-      ctx.strokeStyle = '#333333';
+      ctx.restore(); // Restore from clipping
+
+      // 5. Draw Danger Zone on top
+      const safeZoneInsetPixels = state.safeZoneMM * pixelsPerMM;
+      const stripeCanvas = document.createElement('canvas');
+      stripeCanvas.width = 16;
+      stripeCanvas.height = 16;
+      const stripeCtx = stripeCanvas.getContext('2d');
+      if (stripeCtx) {
+          stripeCtx.strokeStyle = 'rgba(239, 68, 68, 0.7)';
+          stripeCtx.lineWidth = 4;
+          stripeCtx.beginPath();
+          stripeCtx.moveTo(-4, 4);
+          stripeCtx.lineTo(4, -4);
+          stripeCtx.moveTo(12, 20);
+          stripeCtx.lineTo(20, 12);
+          stripeCtx.stroke();
+      }
+      const stripedPattern = ctx.createPattern(stripeCanvas, 'repeat');
+      if (stripedPattern) {
+          ctx.fillStyle = stripedPattern;
+          ctx.globalAlpha = 0.5;
+          ctx.fillRect(0, 0, canvasWidth, safeZoneInsetPixels);
+          ctx.fillRect(0, canvasHeight - safeZoneInsetPixels, canvasWidth, safeZoneInsetPixels);
+          ctx.fillRect(0, safeZoneInsetPixels, safeZoneInsetPixels, canvasHeight - 2 * safeZoneInsetPixels);
+          ctx.fillRect(canvasWidth - safeZoneInsetPixels, safeZoneInsetPixels, safeZoneInsetPixels, canvasHeight - 2 * safeZoneInsetPixels);
+          ctx.globalAlpha = 1.0;
+      }
+
+      // 6. Draw Card Border
+      ctx.strokeStyle = 'hsl(var(--foreground) / 0.5)';
       ctx.lineWidth = 1;
-      ctx.strokeRect(0.5, 0.5, canvasWidth - 1, canvasHeight - 1);
+      if (state.roundedCorners) {
+          const radius = Math.min(canvasWidth, canvasHeight) * 0.05;
+          roundRect(ctx, 0.5, 0.5, canvasWidth - 1, canvasHeight - 1, radius);
+          ctx.stroke();
+      } else {
+          ctx.strokeRect(0.5, 0.5, canvasWidth - 1, canvasHeight - 1);
+      }
     };
     img.src = state.artwork;
   };
@@ -139,37 +178,41 @@ export default function Preview() {
       return;
     }
 
-    const safeZoneInsetMM = (state.safeZonePercent / 100) * Math.min(state.cardWidth, state.cardHeight);
+    const safeZoneInsetMM = state.safeZoneMM;
     let hasCollision = false;
     
     for (const feature of state.features) {
+      let featureLeft, featureRight, featureTop, featureBottom;
+
       if (feature.type === 'circle') {
         const { x, y, r } = feature;
-        const holeLeft = x - r;
-        const holeRight = x + r;
-        const holeTop = y - r;
-        const holeBottom = y + r;
-        
-        if (holeRight > safeZoneInsetMM && holeLeft < state.cardWidth - safeZoneInsetMM && holeBottom > safeZoneInsetMM && holeTop < state.cardHeight - safeZoneInsetMM) {
-          hasCollision = true;
-          break;
-        }
+        featureLeft = x - r;
+        featureRight = x + r;
+        featureTop = y - r;
+        featureBottom = y + r;
       } else if (feature.type === 'slot') {
         const { x, y, width, height } = feature;
-        const slotLeft = x - width / 2;
-        const slotRight = x + width / 2;
-        const slotTop = y - height / 2;
-        const slotBottom = y + height / 2;
-
-        if (slotRight > safeZoneInsetMM && slotLeft < state.cardWidth - safeZoneInsetMM && slotBottom > safeZoneInsetMM && slotTop < state.cardHeight - safeZoneInsetMM) {
-          hasCollision = true;
-          break;
-        }
+        featureLeft = x - width / 2;
+        featureRight = x + width / 2;
+        featureTop = y - height / 2;
+        featureBottom = y + height / 2;
+      } else {
+        continue;
+      }
+      
+      if (
+        featureLeft < safeZoneInsetMM ||
+        featureRight > state.cardWidth - safeZoneInsetMM ||
+        featureTop < safeZoneInsetMM ||
+        featureBottom > state.cardHeight - safeZoneInsetMM
+      ) {
+        hasCollision = true;
+        break;
       }
     }
     
     if (hasCollision) {
-      dispatch({ type: 'SET_BANNER', payload: { message: 'Artwork intersects with features – DO NOT PRINT', type: 'danger' } });
+      dispatch({ type: 'SET_BANNER', payload: { message: 'Feature is in danger zone – check position', type: 'danger' } });
     } else {
       dispatch({ type: 'SET_BANNER', payload: { message: 'OK to print', type: 'success' } });
     }
@@ -181,7 +224,7 @@ export default function Preview() {
 
   useEffect(() => {
     checkCollisions();
-  }, [state.features, state.safeZonePercent, state.cardWidth, state.cardHeight, state.canvasScale]);
+  }, [state.features, state.safeZoneMM, state.cardWidth, state.cardHeight]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     const canvas = canvasRef.current;
@@ -270,8 +313,6 @@ export default function Preview() {
     return state.banner.type === 'danger' ? 'destructive' : 'default';
   };
 
-  const safeZoneInsetPixels = (state.safeZonePercent / 100) * Math.min(state.cardWidth, state.cardHeight) * state.canvasScale;
-
   return (
     <div className="w-full max-w-4xl space-y-4">
       {state.banner && (
@@ -282,21 +323,8 @@ export default function Preview() {
       )}
       
       <div className="flex justify-center">
-        <div ref={containerRef} className="relative inline-block border rounded-lg overflow-hidden bg-muted shadow-lg cursor-grab active:cursor-grabbing" onMouseDown={handleMouseDown}>
-          <canvas ref={canvasRef} className="block max-w-full h-auto" />
-          {state.artwork && (
-            <div
-              className="absolute pointer-events-none opacity-40"
-              style={{
-                top: `${safeZoneInsetPixels}px`,
-                left: `${safeZoneInsetPixels}px`,
-                right: `${safeZoneInsetPixels}px`,
-                bottom: `${safeZoneInsetPixels}px`,
-                background: 'repeating-linear-gradient(45deg, #ef4444 0px, #ef4444 8px, transparent 8px, transparent 16px)',
-                animation: 'moveStripes 2s linear infinite',
-              }}
-            />
-          )}
+        <div ref={containerRef} className="relative inline-block shadow-lg cursor-grab active:cursor-grabbing" onMouseDown={handleMouseDown}>
+          <canvas ref={canvasRef} className="block max-w-full h-auto rounded-lg border border-border" />
         </div>
       </div>
       

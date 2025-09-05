@@ -50,6 +50,15 @@ export default function Export() {
     
     const img = new Image();
     img.onload = () => {
+      exportCtx.save();
+
+      // Clip to rounded corners if enabled
+      if (state.roundedCorners) {
+        const radius = Math.min(exportWidth, exportHeight) * 0.05;
+        roundRect(exportCtx, 0, 0, exportWidth, exportHeight, radius);
+        exportCtx.clip();
+      }
+
       exportCtx.fillStyle = '#ffffff';
       exportCtx.fillRect(0, 0, exportWidth, exportHeight);
       
@@ -90,6 +99,8 @@ export default function Export() {
         }
       });
       
+      exportCtx.restore(); // Restore from clipping
+
       exportCtx.save();
       exportCtx.globalAlpha = 0.4;
       exportCtx.fillStyle = 'white';

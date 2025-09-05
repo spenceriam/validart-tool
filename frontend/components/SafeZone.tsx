@@ -14,17 +14,17 @@ export default function SafeZone() {
   return (
     <Card className="bg-card border-border">
       <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-medium">Safe Zone</CardTitle>
+        <CardTitle className="text-sm font-medium">Danger Zone</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          <Label className="text-xs">Safe zone size: {state.safeZonePercent}%</Label>
+          <Label className="text-xs">Margin size: {state.safeZoneMM.toFixed(1)} mm</Label>
           <Slider
-            value={[state.safeZonePercent]}
+            value={[state.safeZoneMM]}
             onValueChange={handleSafeZoneChange}
-            min={10}
-            max={15}
-            step={1}
+            min={1}
+            max={10}
+            step={0.5}
             className="w-full"
           />
         </div>
