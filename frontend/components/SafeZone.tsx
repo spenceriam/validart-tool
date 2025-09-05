@@ -18,12 +18,12 @@ export default function SafeZone() {
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          <Label className="text-xs">Margin size: {state.safeZoneMM.toFixed(1)} mm</Label>
+          <Label className="text-xs">Margin size: {state.safeZonePercent.toFixed(1)}%</Label>
           <Slider
-            value={[state.safeZoneMM]}
+            value={[state.safeZonePercent]}
             onValueChange={handleSafeZoneChange}
-            min={1}
-            max={10}
+            min={5}
+            max={50}
             step={0.5}
             className="w-full"
           />

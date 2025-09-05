@@ -24,7 +24,7 @@ export interface ValidartState {
   artworkFile: File | null;
   cardWidth: number;
   cardHeight: number;
-  safeZoneMM: number;
+  safeZonePercent: number;
   roundedCorners: boolean;
   features: Feature[];
   canvasWidth: number;
@@ -58,8 +58,8 @@ const initialState: ValidartState = {
   artworkFile: null,
   cardWidth: 101.6,
   cardHeight: 139.4,
-  safeZoneMM: 3,
-  roundedCorners: false,
+  safeZonePercent: 12,
+  roundedCorners: true,
   features: [],
   canvasWidth: 400,
   canvasHeight: 250,
@@ -88,7 +88,7 @@ function validartReducer(state: ValidartState, action: ValidartAction): Validart
     case 'SET_SAFE_ZONE':
       return {
         ...state,
-        safeZoneMM: action.payload,
+        safeZonePercent: action.payload,
       };
     case 'SET_ROUNDED_CORNERS':
       return {

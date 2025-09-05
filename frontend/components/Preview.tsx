@@ -66,16 +66,26 @@ export default function Preview() {
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
     if (!state.artwork) {
-      ctx.fillStyle = 'hsl(var(--muted))';
+      // Light grey background
+      ctx.fillStyle = '#f3f4f6';
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      
+      // Draw border
       ctx.strokeStyle = 'hsl(var(--border))';
       ctx.lineWidth = 2;
-      ctx.strokeRect(1, 1, canvasWidth - 2, canvasHeight - 2);
+      if (state.roundedCorners) {
+        const radius = Math.min(canvasWidth, canvasHeight) * 0.05;
+        roundRect(ctx, 1, 1, canvasWidth - 2, canvasHeight - 2, radius);
+        ctx.stroke();
+      } else {
+        ctx.strokeRect(1, 1, canvasWidth - 2, canvasHeight - 2);
+      }
+      
       ctx.fillStyle = 'hsl(var(--muted-foreground))';
       ctx.font = `${Math.min(canvasWidth, canvasHeight) / 20}px system-ui`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('Upload artwork to preview', canvasWidth / 2, canvasHeight / 2);
+      ctx.fillText('Upload artwork to begin', canvasWidth / 2, canvasHeight / 2);
       ctx.font = `${Math.min(canvasWidth, canvasHeight) / 30}px system-ui`;
       ctx.fillText(`${state.cardWidth.toFixed(1)}mm × ${state.cardHeight.toFixed(1)}mm`, canvasWidth / 2, canvasHeight / 2 + 30);
       return;
@@ -136,7 +146,7 @@ export default function Preview() {
       });
 
       // Draw Danger Zone overlay - outside of clipping
-      const dangerZoneInsetPixels = state.safeZoneMM * pixelsPerMM;
+      const dangerZoneInsetPixels = (state.safeZonePercent / 100) * Math.min(canvasWidth, canvasHeight);
       
       // Create a striped pattern for the danger zone
       const stripeCanvas = document.createElement('canvas');
@@ -192,7 +202,7 @@ export default function Preview() {
       return;
     }
 
-    const safeZoneInsetMM = state.safeZoneMM;
+    const safeZoneInsetMM = (state.safeZonePercent / 100) * Math.min(state.cardWidth, state.cardHeight);
     let hasCollision = false;
     
     for (const feature of state.features) {
@@ -234,11 +244,11 @@ export default function Preview() {
 
   useEffect(() => {
     updatePreview();
-  }, [state.artwork, state.cardWidth, state.cardHeight, state.roundedCorners, state.features, state.safeZoneMM]);
+  }, [state.artwork, state.cardWidth, state.cardHeight, state.roundedCorners, state.features, state.safeZonePercent]);
 
   useEffect(() => {
     checkCollisions();
-  }, [state.features, state.safeZoneMM, state.cardWidth, state.cardHeight]);
+  }, [state.features, state.safeZonePercent, state.cardWidth, state.cardHeight]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     const canvas = canvasRef.current;
