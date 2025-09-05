@@ -33,7 +33,7 @@ export default function Export() {
     ctx.restore();
   };
 
-  const downloadProof = () => {
+  const downloadScreenshot = () => {
     if (!state.artwork) {
       toast({
         title: "Error",
@@ -128,18 +128,8 @@ export default function Export() {
         drawDashedRect(exportCtx, bleedInset, bleedInset, exportWidth - 2 * bleedInset, exportHeight - 2 * bleedInset);
       }
       
-      // Add PROOF watermark
-      exportCtx.save();
-      exportCtx.globalAlpha = 0.4;
-      exportCtx.fillStyle = 'white';
-      exportCtx.font = `${exportWidth / 15}px system-ui`;
-      exportCtx.textAlign = 'center';
-      exportCtx.textBaseline = 'middle';
-      exportCtx.fillText('PROOF', exportWidth / 2, exportHeight / 2);
-      exportCtx.restore();
-      
       const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
-      const filename = `Validart-proof-${state.cardWidth}x${state.cardHeight}-${timestamp}.png`;
+      const filename = `Validart-screenshot-${state.cardWidth}x${state.cardHeight}-${timestamp}.png`;
       
       exportCanvas.toBlob(blob => {
         if (blob) {
@@ -154,7 +144,7 @@ export default function Export() {
           
           toast({
             title: "Success",
-            description: "Proof downloaded successfully",
+            description: "Screenshot downloaded successfully",
           });
         }
       }, 'image/png');
@@ -165,7 +155,7 @@ export default function Export() {
   return (
     <Card className="bg-card border-border">
       <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-medium">Download Proof</CardTitle>
+        <CardTitle className="text-sm font-medium">Download Screenshot</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
@@ -183,13 +173,13 @@ export default function Export() {
             </Select>
           </div>
           <Button 
-            onClick={downloadProof} 
+            onClick={downloadScreenshot} 
             disabled={!state.artwork}
             className="w-full h-8 text-xs"
             size="sm"
           >
             <Download className="h-3 w-3 mr-1" />
-            Download Proof
+            Download Screenshot
           </Button>
         </div>
       </CardContent>
