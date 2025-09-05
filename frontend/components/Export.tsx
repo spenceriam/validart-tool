@@ -12,6 +12,20 @@ export default function Export() {
   const [selectedDpi, setSelectedDpi] = React.useState('300');
   const { toast } = useToast();
 
+  const roundRect = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) => {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+  };
+
   const downloadProof = () => {
     if (!state.artwork) {
       toast({
@@ -23,68 +37,68 @@ export default function Export() {
     }
 
     const dpi = parseInt(selectedDpi);
-    const scaleFactor = dpi / 150;
+    const mmToPx = dpi / 25.4;
+
+    const exportWidth = state.cardWidth * mmToPx;
+    const exportHeight = state.cardHeight * mmToPx;
     
-    // Create export canvas
     const exportCanvas = document.createElement('canvas');
+    exportCanvas.width = exportWidth;
+    exportCanvas.height = exportHeight;
     const exportCtx = exportCanvas.getContext('2d');
     if (!exportCtx) return;
     
-    const exportWidth = state.canvasWidth * scaleFactor;
-    const exportHeight = state.canvasHeight * scaleFactor;
-    
-    exportCanvas.width = exportWidth;
-    exportCanvas.height = exportHeight;
-    
-    // Scale context
-    exportCtx.scale(scaleFactor, scaleFactor);
-    
-    // Load artwork and draw
     const img = new Image();
     img.onload = () => {
-      // Clear canvas
       exportCtx.fillStyle = '#ffffff';
-      exportCtx.fillRect(0, 0, state.canvasWidth, state.canvasHeight);
+      exportCtx.fillRect(0, 0, exportWidth, exportHeight);
       
-      // Draw artwork
       const artworkAspect = img.width / img.height;
       const cardAspect = state.cardWidth / state.cardHeight;
       
       let drawWidth, drawHeight, drawX, drawY;
       
       if (artworkAspect > cardAspect) {
-        drawHeight = state.canvasHeight;
+        drawHeight = exportHeight;
         drawWidth = drawHeight * artworkAspect;
-        drawX = (state.canvasWidth - drawWidth) / 2;
+        drawX = (exportWidth - drawWidth) / 2;
         drawY = 0;
       } else {
-        drawWidth = state.canvasWidth;
+        drawWidth = exportWidth;
         drawHeight = drawWidth / artworkAspect;
         drawX = 0;
-        drawY = (state.canvasHeight - drawHeight) / 2;
+        drawY = (exportHeight - drawHeight) / 2;
       }
 
       exportCtx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
       
-      // Draw punch holes
       exportCtx.fillStyle = '#ef4444';
-      state.punchHoles.forEach(hole => {
-        exportCtx.beginPath();
-        exportCtx.arc(hole.x, hole.y, hole.r, 0, 2 * Math.PI);
-        exportCtx.fill();
+      state.features.forEach(feature => {
+        if (feature.type === 'circle') {
+          exportCtx.beginPath();
+          exportCtx.arc(feature.x * mmToPx, feature.y * mmToPx, feature.r * mmToPx, 0, 2 * Math.PI);
+          exportCtx.fill();
+        } else if (feature.type === 'slot') {
+          const { x, y, width, height } = feature;
+          const slotX = (x - width / 2) * mmToPx;
+          const slotY = (y - height / 2) * mmToPx;
+          const slotWidth = width * mmToPx;
+          const slotHeight = height * mmToPx;
+          const radius = slotHeight / 2;
+          roundRect(exportCtx, slotX, slotY, slotWidth, slotHeight, radius);
+          exportCtx.fill();
+        }
       });
       
-      // Add watermark
       exportCtx.save();
       exportCtx.globalAlpha = 0.4;
       exportCtx.fillStyle = 'white';
-      exportCtx.font = '48px system-ui';
+      exportCtx.font = `${exportWidth / 15}px system-ui`;
       exportCtx.textAlign = 'center';
       exportCtx.textBaseline = 'middle';
-      exportCtx.fillText('PROOF', state.canvasWidth / 2, state.canvasHeight / 2);
+      exportCtx.fillText('PROOF', exportWidth / 2, exportHeight / 2);
       exportCtx.restore();
       
-      // Download
       const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
       const filename = `Validart-proof-${state.cardWidth}x${state.cardHeight}-${timestamp}.png`;
       

@@ -1,11 +1,23 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 
-export interface PunchHole {
+export interface CircleFeature {
   id: string;
-  x: number;
-  y: number;
-  r: number;
+  type: 'circle';
+  x: number; // center x in mm
+  y: number; // center y in mm
+  r: number; // radius in mm
 }
+
+export interface SlotFeature {
+  id: string;
+  type: 'slot';
+  x: number; // center x in mm
+  y: number; // center y in mm
+  width: number; // in mm
+  height: number; // in mm
+}
+
+export type Feature = CircleFeature | SlotFeature;
 
 export interface ValidartState {
   artwork: string | null;
@@ -14,10 +26,10 @@ export interface ValidartState {
   cardHeight: number;
   safeZonePercent: number;
   roundedCorners: boolean;
-  punchHoles: PunchHole[];
+  features: Feature[];
   canvasWidth: number;
   canvasHeight: number;
-  canvasScale: number;
+  canvasScale: number; // pixels per mm
   isDragging: boolean;
   isResizing: boolean;
   dragTarget: any;
@@ -30,10 +42,10 @@ type ValidartAction =
   | { type: 'SET_CARD_DIMENSIONS'; payload: { width: number; height: number } }
   | { type: 'SET_SAFE_ZONE'; payload: number }
   | { type: 'SET_ROUNDED_CORNERS'; payload: boolean }
-  | { type: 'ADD_PUNCH_HOLE'; payload: PunchHole }
-  | { type: 'UPDATE_PUNCH_HOLE'; payload: { id: string; updates: Partial<PunchHole> } }
-  | { type: 'REMOVE_PUNCH_HOLE'; payload: string }
-  | { type: 'CLEAR_PUNCH_HOLES' }
+  | { type: 'ADD_FEATURE'; payload: Feature }
+  | { type: 'UPDATE_FEATURE'; payload: { id: string; updates: Partial<Feature> } }
+  | { type: 'REMOVE_FEATURE'; payload: string }
+  | { type: 'CLEAR_FEATURES' }
   | { type: 'SET_CANVAS_DIMENSIONS'; payload: { width: number; height: number; scale: number } }
   | { type: 'SET_DRAGGING'; payload: { isDragging: boolean; dragTarget?: any } }
   | { type: 'SET_RESIZING'; payload: boolean }
@@ -48,7 +60,7 @@ const initialState: ValidartState = {
   cardHeight: 139.4,
   safeZonePercent: 12,
   roundedCorners: false,
-  punchHoles: [],
+  features: [],
   canvasWidth: 400,
   canvasHeight: 250,
   canvasScale: 1,
@@ -83,27 +95,29 @@ function validartReducer(state: ValidartState, action: ValidartAction): Validart
         ...state,
         roundedCorners: action.payload,
       };
-    case 'ADD_PUNCH_HOLE':
+    case 'ADD_FEATURE':
       return {
         ...state,
-        punchHoles: [...state.punchHoles, action.payload],
+        features: [...state.features, action.payload],
       };
-    case 'UPDATE_PUNCH_HOLE':
+    case 'UPDATE_FEATURE':
       return {
         ...state,
-        punchHoles: state.punchHoles.map(hole =>
-          hole.id === action.payload.id ? { ...hole, ...action.payload.updates } : hole
+        features: state.features.map(feature =>
+          feature.id === action.payload.id
+            ? { ...feature, ...action.payload.updates }
+            : feature
         ),
       };
-    case 'REMOVE_PUNCH_HOLE':
+    case 'REMOVE_FEATURE':
       return {
         ...state,
-        punchHoles: state.punchHoles.filter(hole => hole.id !== action.payload),
+        features: state.features.filter(feature => feature.id !== action.payload),
       };
-    case 'CLEAR_PUNCH_HOLES':
+    case 'CLEAR_FEATURES':
       return {
         ...state,
-        punchHoles: [],
+        features: [],
       };
     case 'SET_CANVAS_DIMENSIONS':
       return {

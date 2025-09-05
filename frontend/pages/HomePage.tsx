@@ -4,7 +4,7 @@ import ArtworkUpload from '../components/ArtworkUpload';
 import CardDimensions from '../components/CardDimensions';
 import SafeZone from '../components/SafeZone';
 import Options from '../components/Options';
-import PunchHoles from '../components/PunchHoles';
+import Features from '../components/Features';
 import Preview from '../components/Preview';
 import Export from '../components/Export';
 import Footer from '../components/Footer';
@@ -28,7 +28,7 @@ export default function HomePage() {
               <CardDimensions />
               <SafeZone />
               <Options />
-              <PunchHoles />
+              <Features />
               <Export />
             </div>
           </div>
