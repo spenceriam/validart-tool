@@ -1,12 +1,10 @@
 import React, { useRef, useEffect } from 'react';
 import { useValidart } from '../contexts/ValidartContext';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
 
 export default function Preview() {
   const { state, dispatch } = useValidart();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const canvasContainerRef = useRef<HTMLDivElement>(null);
 
   const roundRect = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) => {
     ctx.beginPath();
@@ -31,35 +29,28 @@ export default function Preview() {
 
   const updatePreview = () => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const container = canvasContainerRef.current;
+    if (!canvas || !container) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const maxCanvasSize = Math.min(600, window.innerWidth - 450);
+    const containerWidth = container.clientWidth;
+    const containerHeight = container.clientHeight;
+
     const cardAspectRatio = state.cardWidth / state.cardHeight;
     
-    let canvasWidth, canvasHeight, pixelsPerMM;
+    let canvasWidth, canvasHeight;
 
-    if (cardAspectRatio > 1) {
-      canvasWidth = Math.min(maxCanvasSize, 600);
-      canvasHeight = canvasWidth / cardAspectRatio;
+    if (containerWidth / containerHeight > cardAspectRatio) {
+      canvasHeight = containerHeight;
+      canvasWidth = canvasHeight * cardAspectRatio;
     } else {
-      canvasHeight = Math.min(maxCanvasSize, 600);
-      canvasWidth = canvasHeight * cardAspectRatio;
-    }
-    pixelsPerMM = canvasWidth / state.cardWidth;
-
-    if (canvasWidth < 200) {
-      canvasWidth = 200;
+      canvasWidth = containerWidth;
       canvasHeight = canvasWidth / cardAspectRatio;
-      pixelsPerMM = canvasWidth / state.cardWidth;
     }
-    if (canvasHeight < 200) {
-      canvasHeight = 200;
-      canvasWidth = canvasHeight * cardAspectRatio;
-      pixelsPerMM = canvasHeight / state.cardHeight;
-    }
+
+    const pixelsPerMM = canvasWidth / state.cardWidth;
 
     canvas.width = canvasWidth;
     canvas.height = canvasHeight;
@@ -202,7 +193,16 @@ export default function Preview() {
   };
 
   useEffect(() => {
+    const container = canvasContainerRef.current;
+    if (!container) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      updatePreview();
+    });
+    resizeObserver.observe(container);
     updatePreview();
+
+    return () => resizeObserver.disconnect();
   }, [state.artwork, state.cardWidth, state.cardHeight, state.roundedCorners, state.features, state.trimDistance, state.bleedDistance]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -278,14 +278,13 @@ export default function Preview() {
   }, [state.isDragging, state.lastMousePos, state.canvasScale]);
 
   return (
-    <div className="w-full max-w-4xl space-y-4">
-      <div className="flex justify-center">
-        <div ref={containerRef} className="relative inline-block shadow-lg cursor-grab active:cursor-grabbing" onMouseDown={handleMouseDown}>
-          <canvas ref={canvasRef} className="block max-w-full h-auto rounded-lg border border-border" />
+    <div className="w-full h-full flex flex-col p-6">
+      <div ref={canvasContainerRef} className="flex-1 flex items-center justify-center relative">
+        <div className="relative inline-block shadow-lg cursor-grab active:cursor-grabbing" onMouseDown={handleMouseDown}>
+          <canvas ref={canvasRef} className="block max-w-full max-h-full rounded-lg border border-border" />
         </div>
       </div>
-      
-      <div className="text-center text-sm text-muted-foreground">
+      <div className="text-center text-sm text-muted-foreground pt-4">
         Card: {state.cardWidth.toFixed(1)}mm × {state.cardHeight.toFixed(1)}mm 
         ({(state.cardWidth / 25.4).toFixed(3)}" × {(state.cardHeight / 25.4).toFixed(3)}")
       </div>
