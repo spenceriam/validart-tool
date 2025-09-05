@@ -50,17 +50,18 @@ export default function Export() {
     
     const img = new Image();
     img.onload = () => {
+      // Start with white background
+      exportCtx.fillStyle = '#ffffff';
+      exportCtx.fillRect(0, 0, exportWidth, exportHeight);
+
       exportCtx.save();
 
-      // Clip to rounded corners if enabled
+      // Apply clipping only if rounded corners are enabled
       if (state.roundedCorners) {
         const radius = Math.min(exportWidth, exportHeight) * 0.05;
         roundRect(exportCtx, 0, 0, exportWidth, exportHeight, radius);
         exportCtx.clip();
       }
-
-      exportCtx.fillStyle = '#ffffff';
-      exportCtx.fillRect(0, 0, exportWidth, exportHeight);
       
       const artworkAspect = img.width / img.height;
       const cardAspect = state.cardWidth / state.cardHeight;
@@ -81,6 +82,9 @@ export default function Export() {
 
       exportCtx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
       
+      exportCtx.restore(); // Restore from clipping
+
+      // Draw features on top (outside clipping)
       exportCtx.fillStyle = '#ef4444';
       state.features.forEach(feature => {
         if (feature.type === 'circle') {
@@ -99,8 +103,7 @@ export default function Export() {
         }
       });
       
-      exportCtx.restore(); // Restore from clipping
-
+      // Add PROOF watermark
       exportCtx.save();
       exportCtx.globalAlpha = 0.4;
       exportCtx.fillStyle = 'white';

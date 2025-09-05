@@ -81,19 +81,23 @@ export default function Preview() {
       return;
     }
 
-    // 1. Draw artwork
+    // Draw artwork
     const img = new Image();
     img.onload = () => {
+      // Start with white background
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
       ctx.save();
       
-      // 2. Clip to card shape (rounded or square)
+      // Apply clipping only if rounded corners are enabled
       if (state.roundedCorners) {
         const radius = Math.min(canvasWidth, canvasHeight) * 0.05;
         roundRect(ctx, 0, 0, canvasWidth, canvasHeight, radius);
         ctx.clip();
       }
 
-      // 3. Draw the artwork to fill the clipped area
+      // Draw the artwork to fill the card area
       const artworkAspect = img.width / img.height;
       let drawWidth, drawHeight, drawX, drawY;
       
@@ -110,7 +114,9 @@ export default function Preview() {
       }
       ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
       
-      // 4. Draw features on top of artwork
+      ctx.restore(); // Restore from clipping
+
+      // Draw features on top of artwork (outside clipping)
       state.features.forEach(feature => {
         ctx.fillStyle = '#ef4444';
         if (feature.type === 'circle') {
@@ -129,44 +135,52 @@ export default function Preview() {
         }
       });
 
-      ctx.restore(); // Restore from clipping
-
-      // 5. Draw Danger Zone on top
-      const safeZoneInsetPixels = state.safeZoneMM * pixelsPerMM;
+      // Draw Danger Zone overlay - outside of clipping
+      const dangerZoneInsetPixels = state.safeZoneMM * pixelsPerMM;
+      
+      // Create a striped pattern for the danger zone
       const stripeCanvas = document.createElement('canvas');
       stripeCanvas.width = 16;
       stripeCanvas.height = 16;
       const stripeCtx = stripeCanvas.getContext('2d');
       if (stripeCtx) {
-          stripeCtx.strokeStyle = 'rgba(239, 68, 68, 0.7)';
-          stripeCtx.lineWidth = 4;
-          stripeCtx.beginPath();
-          stripeCtx.moveTo(-4, 4);
-          stripeCtx.lineTo(4, -4);
-          stripeCtx.moveTo(12, 20);
-          stripeCtx.lineTo(20, 12);
-          stripeCtx.stroke();
+        stripeCtx.strokeStyle = 'rgba(239, 68, 68, 0.7)';
+        stripeCtx.lineWidth = 4;
+        stripeCtx.beginPath();
+        stripeCtx.moveTo(-4, 4);
+        stripeCtx.lineTo(4, -4);
+        stripeCtx.moveTo(12, 20);
+        stripeCtx.lineTo(20, 12);
+        stripeCtx.stroke();
       }
+      
       const stripedPattern = ctx.createPattern(stripeCanvas, 'repeat');
       if (stripedPattern) {
-          ctx.fillStyle = stripedPattern;
-          ctx.globalAlpha = 0.5;
-          ctx.fillRect(0, 0, canvasWidth, safeZoneInsetPixels);
-          ctx.fillRect(0, canvasHeight - safeZoneInsetPixels, canvasWidth, safeZoneInsetPixels);
-          ctx.fillRect(0, safeZoneInsetPixels, safeZoneInsetPixels, canvasHeight - 2 * safeZoneInsetPixels);
-          ctx.fillRect(canvasWidth - safeZoneInsetPixels, safeZoneInsetPixels, safeZoneInsetPixels, canvasHeight - 2 * safeZoneInsetPixels);
-          ctx.globalAlpha = 1.0;
+        ctx.save();
+        ctx.fillStyle = stripedPattern;
+        ctx.globalAlpha = 0.5;
+        
+        // Top danger zone
+        ctx.fillRect(0, 0, canvasWidth, dangerZoneInsetPixels);
+        // Bottom danger zone
+        ctx.fillRect(0, canvasHeight - dangerZoneInsetPixels, canvasWidth, dangerZoneInsetPixels);
+        // Left danger zone
+        ctx.fillRect(0, dangerZoneInsetPixels, dangerZoneInsetPixels, canvasHeight - 2 * dangerZoneInsetPixels);
+        // Right danger zone
+        ctx.fillRect(canvasWidth - dangerZoneInsetPixels, dangerZoneInsetPixels, dangerZoneInsetPixels, canvasHeight - 2 * dangerZoneInsetPixels);
+        
+        ctx.restore();
       }
 
-      // 6. Draw Card Border
+      // Draw Card Border (always on top)
       ctx.strokeStyle = 'hsl(var(--foreground) / 0.5)';
       ctx.lineWidth = 1;
       if (state.roundedCorners) {
-          const radius = Math.min(canvasWidth, canvasHeight) * 0.05;
-          roundRect(ctx, 0.5, 0.5, canvasWidth - 1, canvasHeight - 1, radius);
-          ctx.stroke();
+        const radius = Math.min(canvasWidth, canvasHeight) * 0.05;
+        roundRect(ctx, 0.5, 0.5, canvasWidth - 1, canvasHeight - 1, radius);
+        ctx.stroke();
       } else {
-          ctx.strokeRect(0.5, 0.5, canvasWidth - 1, canvasHeight - 1);
+        ctx.strokeRect(0.5, 0.5, canvasWidth - 1, canvasHeight - 1);
       }
     };
     img.src = state.artwork;
@@ -220,7 +234,7 @@ export default function Preview() {
 
   useEffect(() => {
     updatePreview();
-  }, [state.artwork, state.cardWidth, state.cardHeight, state.roundedCorners, state.features]);
+  }, [state.artwork, state.cardWidth, state.cardHeight, state.roundedCorners, state.features, state.safeZoneMM]);
 
   useEffect(() => {
     checkCollisions();
