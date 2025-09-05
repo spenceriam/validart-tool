@@ -41,14 +41,14 @@ function AppInner() {
           </Alert>
         </div>
       )}
-      <main className="flex-1 flex flex-col md:flex-row overflow-hidden">
+      <main className="flex-1 flex flex-row overflow-hidden">
         {/* Main Preview Area */}
         <div className="flex-1 relative">
           <Preview />
         </div>
         
         {/* Right Sidebar */}
-        <div className="w-full md:w-80 border-t md:border-t-0 md:border-l border-border bg-card p-6 overflow-y-auto">
+        <div className="w-80 border-l border-border bg-card p-6 overflow-y-auto">
           <div className="space-y-6">
             <ArtworkUpload />
             <CardDimensions />
