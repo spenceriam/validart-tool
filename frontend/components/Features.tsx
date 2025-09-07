@@ -65,11 +65,11 @@ export default function Features() {
   };
 
   const centerVertically = () => {
-    const centerY = state.cardHeight / 2;
+    const centerX = state.cardWidth / 2;
     state.features.forEach(feature => {
       dispatch({
         type: 'UPDATE_FEATURE',
-        payload: { id: feature.id, updates: { y: centerY } }
+        payload: { id: feature.id, updates: { x: centerX } }
       });
     });
   };
