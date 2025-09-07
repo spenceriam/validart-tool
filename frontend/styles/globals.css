@@ -89,7 +89,7 @@
 }
 
 /* For Firefox */
-html {
+* {
   scrollbar-width: thin;
   scrollbar-color: hsl(var(--muted-foreground) / 0.5) hsl(var(--muted));
 }
