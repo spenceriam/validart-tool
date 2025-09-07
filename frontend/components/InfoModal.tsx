@@ -19,7 +19,7 @@ export default function InfoModal({ isOpen, onClose }: InfoModalProps) {
       />
       
       {/* Modal content container */}
-      <div className="relative w-full max-w-lg mx-auto bg-card rounded-2xl shadow-2xl border border-border">
+      <div className="relative w-full max-w-2xl mx-auto bg-card rounded-2xl shadow-2xl border border-border">
         {/* Close button */}
         <button
           onClick={onClose}
@@ -77,22 +77,24 @@ export default function InfoModal({ isOpen, onClose }: InfoModalProps) {
               </div>
             </div>
 
-            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-              <h4 className="font-medium text-yellow-800 dark:text-yellow-200 mb-2">
-                Important Notice
-              </h4>
-              <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                <strong>This is not a proofing solution.</strong> Validart is an aide for personal artwork checks to ensure punch holes and slots won't conflict with your designs. Final approval is always subject to your vendor's specifications and requirements.
-              </p>
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                <h4 className="font-medium text-yellow-800 dark:text-yellow-200 mb-2">
+                  Important Notice
+                </h4>
+                <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                  <strong>This is not a proofing solution.</strong> Validart is an aide for personal artwork checks to ensure punch holes and slots won't conflict with your designs. Final approval is always subject to your vendor's specifications and requirements.
+                </p>
+              </div>
 
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-              <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-2">
-                Open Source Project
-              </h4>
-              <p className="text-sm text-blue-700 dark:text-blue-300">
-                Validart was built to be open source to aide artwork validation and prevent wasted time and cards on unvalidated designs. This tool helps identify potential issues before production.
-              </p>
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-2">
+                  Open Source Project
+                </h4>
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  Validart was built to be open source to aide artwork validation and prevent wasted time and cards on unvalidated designs. This tool helps identify potential issues before production.
+                </p>
+              </div>
             </div>
 
             <div className="flex justify-center pt-2">
