@@ -19,7 +19,7 @@ export default function InfoModal({ isOpen, onClose }: InfoModalProps) {
       />
       
       {/* Modal content container */}
-      <div className="relative w-full max-w-2xl mx-auto bg-card rounded-2xl shadow-2xl border border-border">
+      <div className="relative w-full max-w-lg mx-auto bg-card rounded-2xl shadow-2xl border border-border">
         {/* Close button */}
         <button
           onClick={onClose}
@@ -29,14 +29,14 @@ export default function InfoModal({ isOpen, onClose }: InfoModalProps) {
         </button>
 
         {/* Content */}
-        <div className="p-6 sm:p-8">
-          <div className="flex justify-center mb-6">
-            <img src="/validart-logo.png" alt="Validart Logo" className="h-20" />
+        <div className="p-6">
+          <div className="flex justify-center mb-4">
+            <img src="/validart-logo.png" alt="Validart Logo" className="h-16" />
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-foreground mb-1">
+              <h2 className="text-xl font-bold text-foreground mb-1">
                 Welcome to Validart
               </h2>
               <p className="text-muted-foreground">
@@ -95,7 +95,7 @@ export default function InfoModal({ isOpen, onClose }: InfoModalProps) {
               </p>
             </div>
 
-            <div className="flex justify-center pt-4">
+            <div className="flex justify-center pt-2">
               <Button 
                 onClick={onClose}
                 className="px-8 py-2"
