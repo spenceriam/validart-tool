@@ -2,6 +2,8 @@
 
 Validart is an open-source tool designed to help users validate artwork for event cards, badges, and similar printed materials. It provides a visual interface to check how punch holes, slots, and other physical features will interact with your design, helping to prevent costly printing errors.
 
+LIVE DEMO: https://staging-validart-tool-gbmi.frontend.encr.app
+
 ## How It Works
 
 The application allows you to:
