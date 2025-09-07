@@ -19,9 +19,9 @@ export default function InfoModal({ isOpen, onClose }: InfoModalProps) {
       />
       
       {/* Modal content container */}
-      <div className="relative w-full max-w-4xl mx-auto h-[90vh] sm:h-auto">
+      <div className="relative w-full max-w-5xl mx-auto h-[90vh] sm:h-auto">
         {/* The actual modal card */}
-        <div className="relative backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 rounded-2xl shadow-2xl border border-white/20 dark:border-gray-700/30 flex overflow-hidden h-full">
+        <div className="relative backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 rounded-2xl shadow-2xl border border-white/20 dark:border-gray-700/30 flex overflow-hidden h-full max-h-[600px]">
           {/* Column 1: Wallpaper */}
           <div 
             className="w-[100px] flex-shrink-0 bg-repeat bg-center" 
