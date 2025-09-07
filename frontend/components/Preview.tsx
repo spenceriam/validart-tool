@@ -28,6 +28,47 @@ export default function Preview() {
     ctx.restore();
   };
 
+  const getArtworkBounds = useCallback(() => {
+    if (!state.artwork) return null;
+    
+    const cardAspectRatio = state.cardWidth / state.cardHeight;
+    const canvasWidth = state.canvasWidth;
+    const canvasHeight = state.canvasHeight;
+    
+    // Create a temporary image to get dimensions
+    const img = new Image();
+    img.src = state.artwork;
+    
+    const artworkAspect = img.width / img.height;
+    let drawWidth, drawHeight, drawX, drawY;
+    
+    if (artworkAspect > cardAspectRatio) {
+      drawHeight = canvasHeight;
+      drawWidth = drawHeight * artworkAspect;
+      drawX = (canvasWidth - drawWidth) / 2;
+      drawY = 0;
+    } else {
+      drawWidth = canvasWidth;
+      drawHeight = drawWidth / artworkAspect;
+      drawX = 0;
+      drawY = (canvasHeight - drawHeight) / 2;
+    }
+    
+    // Apply artwork offset
+    drawX += state.artworkOffsetX * state.canvasScale;
+    drawY += state.artworkOffsetY * state.canvasScale;
+    
+    return { x: drawX, y: drawY, width: drawWidth, height: drawHeight };
+  }, [state.artwork, state.cardWidth, state.cardHeight, state.canvasWidth, state.canvasHeight, state.artworkOffsetX, state.artworkOffsetY, state.canvasScale]);
+
+  const isPointInArtwork = useCallback((x: number, y: number) => {
+    const bounds = getArtworkBounds();
+    if (!bounds) return false;
+    
+    return x >= bounds.x && x <= bounds.x + bounds.width &&
+           y >= bounds.y && y <= bounds.y + bounds.height;
+  }, [getArtworkBounds]);
+
   const updatePreview = useCallback(() => {
     const canvas = canvasRef.current;
     const container = canvasContainerRef.current;
@@ -139,7 +180,7 @@ export default function Preview() {
         ctx.clip();
       }
 
-      // Draw the artwork to fill the card area
+      // Calculate artwork position and size
       const artworkAspect = img.width / img.height;
       let drawWidth, drawHeight, drawX, drawY;
       
@@ -154,6 +195,11 @@ export default function Preview() {
         drawX = 0;
         drawY = (canvasHeight - drawHeight) / 2;
       }
+
+      // Apply artwork offset
+      drawX += state.artworkOffsetX * pixelsPerMM;
+      drawY += state.artworkOffsetY * pixelsPerMM;
+
       ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
       
       // Restore from clipping if it was applied
@@ -209,7 +255,7 @@ export default function Preview() {
       }
     };
     img.src = state.artwork;
-  }, [state.artwork, state.cardWidth, state.cardHeight, state.roundedCorners, state.features, state.trimDistance, state.bleedDistance, dispatch]);
+  }, [state.artwork, state.artworkOffsetX, state.artworkOffsetY, state.cardWidth, state.cardHeight, state.roundedCorners, state.features, state.trimDistance, state.bleedDistance, dispatch]);
 
   useEffect(() => {
     const container = canvasContainerRef.current;
@@ -245,6 +291,7 @@ export default function Preview() {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
+    // First check if clicking on a feature (features have priority)
     for (let i = state.features.length - 1; i >= 0; i--) {
       const feature = state.features[i];
       const featureX = feature.x * state.canvasScale;
@@ -269,10 +316,16 @@ export default function Preview() {
         return;
       }
     }
+
+    // If no feature was clicked, check if clicking on artwork
+    if (state.artwork && isPointInArtwork(x, y)) {
+      dispatch({ type: 'SET_DRAGGING', payload: { isDragging: true, dragTarget: { type: 'artwork' } } });
+      dispatch({ type: 'SET_LAST_MOUSE_POS', payload: { x, y } });
+    }
   };
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (state.isDragging && state.dragTarget?.type === 'feature') {
+    if (state.isDragging && state.dragTarget) {
       const canvas = canvasRef.current;
       if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
@@ -282,23 +335,41 @@ export default function Preview() {
       const deltaX = (x - state.lastMousePos.x) / state.canvasScale;
       const deltaY = (y - state.lastMousePos.y) / state.canvasScale;
 
-      const feature = state.features.find(f => f.id === state.dragTarget.id);
-      if (feature) {
-        // Use animation frame to throttle updates and prevent flashing
+      if (state.dragTarget.type === 'feature') {
+        const feature = state.features.find(f => f.id === state.dragTarget.id);
+        if (feature) {
+          // Use animation frame to throttle updates and prevent flashing
+          if (animationFrameRef.current) {
+            cancelAnimationFrame(animationFrameRef.current);
+          }
+          
+          animationFrameRef.current = requestAnimationFrame(() => {
+            dispatch({
+              type: 'UPDATE_FEATURE',
+              payload: { id: feature.id, updates: { x: feature.x + deltaX, y: feature.y + deltaY } }
+            });
+            dispatch({ type: 'SET_LAST_MOUSE_POS', payload: { x, y } });
+          });
+        }
+      } else if (state.dragTarget.type === 'artwork') {
+        // Move the artwork
         if (animationFrameRef.current) {
           cancelAnimationFrame(animationFrameRef.current);
         }
         
         animationFrameRef.current = requestAnimationFrame(() => {
           dispatch({
-            type: 'UPDATE_FEATURE',
-            payload: { id: feature.id, updates: { x: feature.x + deltaX, y: feature.y + deltaY } }
+            type: 'SET_ARTWORK_OFFSET',
+            payload: { 
+              x: state.artworkOffsetX + deltaX, 
+              y: state.artworkOffsetY + deltaY 
+            }
           });
           dispatch({ type: 'SET_LAST_MOUSE_POS', payload: { x, y } });
         });
       }
     }
-  }, [state.isDragging, state.dragTarget, state.lastMousePos, state.canvasScale, state.features, dispatch]);
+  }, [state.isDragging, state.dragTarget, state.lastMousePos, state.canvasScale, state.features, state.artworkOffsetX, state.artworkOffsetY, dispatch]);
 
   const handleMouseUp = useCallback(() => {
     if (state.isDragging) {
@@ -327,6 +398,11 @@ export default function Preview() {
       <div className="text-center text-sm text-muted-foreground pt-4">
         Card: {state.cardWidth.toFixed(1)}mm × {state.cardHeight.toFixed(1)}mm 
         ({(state.cardWidth / 25.4).toFixed(3)}" × {(state.cardHeight / 25.4).toFixed(3)}")
+        {state.artwork && (
+          <div className="mt-1 text-xs">
+            Artwork offset: {state.artworkOffsetX.toFixed(1)}mm, {state.artworkOffsetY.toFixed(1)}mm
+          </div>
+        )}
       </div>
     </div>
   );

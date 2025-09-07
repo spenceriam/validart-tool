@@ -22,6 +22,8 @@ export type Feature = CircleFeature | SlotFeature;
 export interface ValidartState {
   artwork: string | null;
   artworkFile: File | null;
+  artworkOffsetX: number; // artwork offset in mm
+  artworkOffsetY: number; // artwork offset in mm
   cardWidth: number;
   cardHeight: number;
   roundedCorners: boolean;
@@ -40,6 +42,7 @@ export interface ValidartState {
 
 type ValidartAction =
   | { type: 'SET_ARTWORK'; payload: { artwork: string; file: File } }
+  | { type: 'SET_ARTWORK_OFFSET'; payload: { x: number; y: number } }
   | { type: 'SET_CARD_DIMENSIONS'; payload: { width: number; height: number } }
   | { type: 'SET_ROUNDED_CORNERS'; payload: boolean }
   | { type: 'ADD_FEATURE'; payload: Feature }
@@ -58,6 +61,8 @@ type ValidartAction =
 const initialState: ValidartState = {
   artwork: null,
   artworkFile: null,
+  artworkOffsetX: 0,
+  artworkOffsetY: 0,
   cardWidth: 101.6, // 4 inches
   cardHeight: 139.7, // 5.5 inches
   roundedCorners: true,
@@ -81,6 +86,14 @@ function validartReducer(state: ValidartState, action: ValidartAction): Validart
         ...state,
         artwork: action.payload.artwork,
         artworkFile: action.payload.file,
+        artworkOffsetX: 0,
+        artworkOffsetY: 0,
+      };
+    case 'SET_ARTWORK_OFFSET':
+      return {
+        ...state,
+        artworkOffsetX: action.payload.x,
+        artworkOffsetY: action.payload.y,
       };
     case 'SET_CARD_DIMENSIONS':
       return {

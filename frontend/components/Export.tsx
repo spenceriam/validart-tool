@@ -86,6 +86,10 @@ export default function Export() {
         drawY = (exportHeight - drawHeight) / 2;
       }
 
+      // Apply artwork offset
+      drawX += state.artworkOffsetX * mmToPx;
+      drawY += state.artworkOffsetY * mmToPx;
+
       exportCtx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
       
       // Restore from clipping if it was applied
