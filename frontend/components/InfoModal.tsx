@@ -30,10 +30,6 @@ export default function InfoModal({ isOpen, onClose }: InfoModalProps) {
 
         {/* Content */}
         <div className="p-6">
-          <div className="flex justify-center mb-4">
-            <img src="/validart-logo.png" alt="Validart Logo" className="h-16" />
-          </div>
-
           <div className="space-y-4">
             <div className="text-center">
               <h2 className="text-xl font-bold text-foreground mb-1">
