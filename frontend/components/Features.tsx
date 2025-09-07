@@ -1,12 +1,23 @@
 import React, { useState } from 'react';
 import { Trash2, Plus, AlignCenter, LayoutGrid } from 'lucide-react';
 import { useValidart } from '../contexts/ValidartContext';
+import type { Feature } from '../contexts/ValidartContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+
+const getFeatureWidth = (feature: Feature): number => {
+  if (feature.type === 'circle') {
+    return feature.r * 2;
+  }
+  if (feature.type === 'slot') {
+    return feature.width;
+  }
+  return 0;
+};
 
 export default function Features() {
   const { state, dispatch } = useValidart();
@@ -93,36 +104,31 @@ export default function Features() {
 
   const distributeEvenly = () => {
     if (state.features.length < 2) return;
-    
-    // Sort features by x position
+
+    // Sort features by x position to maintain order
     const sortedFeatures = [...state.features].sort((a, b) => a.x - b.x);
-    
-    if (sortedFeatures.length === 2) {
-      // For two features, center them with even spacing
-      const spacing = state.cardWidth / 3; // Divide card into thirds
-      const positions = [spacing, spacing * 2];
-      
-      sortedFeatures.forEach((feature, index) => {
-        dispatch({
-          type: 'UPDATE_FEATURE',
-          payload: { id: feature.id, updates: { x: positions[index] } }
-        });
+
+    const buffer = 5; // 5mm buffer
+    const totalFeatureWidth = sortedFeatures.reduce((sum, feature) => sum + getFeatureWidth(feature), 0);
+    const totalBufferWidth = (sortedFeatures.length - 1) * buffer;
+    const totalOccupiedWidth = totalFeatureWidth + totalBufferWidth;
+
+    // Start from the left edge of the centered block of features
+    let currentX = (state.cardWidth - totalOccupiedWidth) / 2;
+
+    sortedFeatures.forEach(feature => {
+      const featureWidth = getFeatureWidth(feature);
+      // The new center is the current position + half the feature's width
+      const newCenterX = currentX + featureWidth / 2;
+
+      dispatch({
+        type: 'UPDATE_FEATURE',
+        payload: { id: feature.id, updates: { x: newCenterX } }
       });
-    } else {
-      // For more than two features, distribute evenly across the width
-      const leftMargin = state.cardWidth * 0.1; // 10% margin
-      const rightMargin = state.cardWidth * 0.9; // 90% position
-      const availableWidth = rightMargin - leftMargin;
-      const spacing = availableWidth / (sortedFeatures.length - 1);
-      
-      sortedFeatures.forEach((feature, index) => {
-        const newX = leftMargin + (spacing * index);
-        dispatch({
-          type: 'UPDATE_FEATURE',
-          payload: { id: feature.id, updates: { x: newX } }
-        });
-      });
-    }
+
+      // Move the current position to the start of the next feature
+      currentX += featureWidth + buffer;
+    });
   };
 
   const getFeaturesByType = (type: 'circle' | 'slot') => {
